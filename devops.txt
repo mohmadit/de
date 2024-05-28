@@ -1,6 +1,19 @@
 <?php
-session_start();
-session_destroy();
-header("Location: login.php");
-exit();
+require 'config.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $task_id = $_POST['task_id'];
+    $code = $_POST['code'];
+
+    $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
+    $stmt->bind_param("is", $task_id, $code);
+
+    if ($stmt->execute()) {
+        echo "Code added successfully";
+    } else {
+        echo "Error adding code: " . $conn->error;
+    }
+
+    $stmt->close();
+}
 ?>
