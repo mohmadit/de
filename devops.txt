@@ -1,18 +1,24 @@
+<?php
+require 'config.php';
 
+$project_id = $_POST['project_id'];
+$title = $_POST['title'];
+$description = $_POST['description'];
+$priority = $_POST['priority'];
+$status = $_POST['status'];
+$assigned_to = $_POST['assigned_to'];
+$start_date = $_POST['start_date'];
+$end_date = $_POST['end_date'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $task_id = $_POST['task_id'];
-    $code = $_POST['code'];
+$stmt = $conn->prepare("INSERT INTO tasks (project_id, title, description, priority, status, assigned_to, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("issssiss", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date);
 
-    $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
-    $stmt->bind_param("is", $task_id, $code);
-
-    if ($stmt->execute()) {
-        echo "Code added successfully";
-    } else {
-        echo "Error adding code: " . $conn->error;
-    }
-
-    $stmt->close();
+if ($stmt->execute()) {
+    echo "Task added successfully.";
+} else {
+    echo "Error: " . $stmt->error;
 }
 
+$stmt->close();
+$conn->close();
+?>
