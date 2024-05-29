@@ -1,39 +1,20 @@
 <?php
-require 'config.php';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate task_id
-    if (isset($_POST['task_id']) && is_numeric($_POST['task_id'])) {
-        $task_id = intval($_POST['task_id']);
-    } else {
-        die("Invalid task ID");
-    }
-
-    // Validate code
-    if (isset($_POST['code']) && !empty(trim($_POST['code']))) {
-        $code = trim($_POST['code']);
-    } else {
-        die("Code cannot be empty");
-    }
-
-    // Prepare an SQL statement for execution
-    $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
-
-    if ($stmt) {
-        // Bind variables to the parameter markers of the prepared statement
-        $stmt->bind_param("is", $task_id, $code);
-
-        // Execute the prepared statement
-        if ($stmt->execute()) {
-            echo "Code added successfully";
-        } else {
-            echo "Error adding code: " . $stmt->error;
-        }
-
-        // Close the prepared statement
-        $stmt->close();
-    } else {
-        echo "Error preparing statement: " . $conn->error;
-    }
+$task_id = $_POST['task_id'];
+$project_id = $_POST['project_id'];
+$title = $_POST['title'];
+$description = $_POST['description'];
+$priority = $_POST['priority'];
+$status = $_POST['status'];
+$assigned_to = $_POST['assigned_to'];
+$start_date = $_POST['start_date'];
+$end_date = $_POST['end_date'];
+$stmt = $conn->prepare("UPDATE tasks SET project_id = ?, title = ?, description = ?, priority = ?, status = ?, assigned_to = ?, start_date = ?, end_date = ? WHERE id = ?");
+$stmt->bind_param("issssissi", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date, $task_id);
+if ($stmt->execute()) {
+    echo "Task updated successfully.";
+} else {
+  echo "Error: " . $stmt->error;
 }
+$stmt->close();
+$conn->close();
 ?>
