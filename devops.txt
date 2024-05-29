@@ -1,4 +1,4 @@
-<?php
+php
 $task_id = $_POST['task_id'];
 $project_id = $_POST['project_id'];
 $title = $_POST['title'];
@@ -17,4 +17,4 @@ if ($stmt->execute()) {
 }
 $stmt->close();
 $conn->close();
-?>
+
