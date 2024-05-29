@@ -1,20 +1,34 @@
-php
-$task_id = $_POST['task_id'];
-$project_id = $_POST['project_id'];
-$title = $_POST['title'];
-$description = $_POST['description'];
-$priority = $_POST['priority'];
-$status = $_POST['status'];
-$assigned_to = $_POST['assigned_to'];
-$start_date = $_POST['start_date'];
-$end_date = $_POST['end_date'];
-$stmt = $conn->prepare("UPDATE tasks SET project_id = ?, title = ?, description = ?, priority = ?, status = ?, assigned_to = ?, start_date = ?, end_date = ? WHERE id = ?");
-$stmt->bind_param("issssissi", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date, $task_id);
-if ($stmt->execute()) {
-    echo "Task updated successfully.";
-} else {
-  echo "Error: " . $stmt->error;
-}
-$stmt->close();
-$conn->close();
+<?php
+require 'config.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $task_id = $_POST['task_id'];
+    $project_id = $_POST['project_id'];
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+    $priority = $_POST['priority'];
+    $status = $_POST['status'];
+    $assigned_to = $_POST['assigned_to'];
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
+
+    $stmt = $conn->prepare("UPDATE tasks SET project_id = ?, title = ?, description = ?, priority = ?, status = ?, assigned_to = ?, start_date = ?, end_date = ? WHERE id = ?");
+    if ($stmt === false) {
+        die('Prepare failed: ' . $conn->error);
+    }
+
+    $bind = $stmt->bind_param("issssissi", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date, $task_id);
+    if ($bind === false) {
+        die('Bind failed: ' . $stmt->error);
+    }
+
+    if ($stmt->execute()) {
+        echo "Task updated successfully.";
+    } else {
+        echo "Error: " . $stmt->error;
+    }
+
+    $stmt->close();
+    $conn->close();
+}
+?>
