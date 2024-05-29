@@ -2,18 +2,38 @@
 require 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $task_id = $_POST['task_id'];
-    $code = $_POST['code'];
-
-    $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
-    $stmt->bind_param("is", $task_id, $code);
-
-    if ($stmt->execute()) {
-        echo "Code added successfully";
+    // Validate task_id
+    if (isset($_POST['task_id']) && is_numeric($_POST['task_id'])) {
+        $task_id = intval($_POST['task_id']);
     } else {
-        echo "Error adding code: " . $conn->error;
+        die("Invalid task ID");
     }
 
-    $stmt->close();
+    // Validate code
+    if (isset($_POST['code']) && !empty(trim($_POST['code']))) {
+        $code = trim($_POST['code']);
+    } else {
+        die("Code cannot be empty");
+    }
+
+    // Prepare an SQL statement for execution
+    $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
+
+    if ($stmt) {
+        // Bind variables to the parameter markers of the prepared statement
+        $stmt->bind_param("is", $task_id, $code);
+
+        // Execute the prepared statement
+        if ($stmt->execute()) {
+            echo "Code added successfully";
+        } else {
+            echo "Error adding code: " . $stmt->error;
+        }
+
+        // Close the prepared statement
+        $stmt->close();
+    } else {
+        echo "Error preparing statement: " . $conn->error;
+    }
 }
 ?>
