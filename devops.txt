@@ -36,5 +36,10 @@ if (isset($_GET['id'])) {
         'start_date' => $task['start_date'],
         'end_date' => $task['end_date'],
         'projectOptions' => $projectOptions,
-  
+        'userOptions' => $userOptions
+    ]);
+
+    $stmt->close();
+}
+$conn->close();
 ?>
