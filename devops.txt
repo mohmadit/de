@@ -1,17 +1,1 @@
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $code_id = $_POST['id'];
-    $code = $_POST['code'];
-
-    $stmt = $conn->prepare("UPDATE codes SET code = ? WHERE id = ?");
-    $stmt->bind_param("si", $code, $code_id);
-
-    if ($stmt->execute()) {
-        echo "Code updated successfully";
-    } else {
-        echo "Error updating code: " . $conn->error;
-    }
-
-    $stmt->close();
-}
-?>
+&lt;?php require &#039;config.php&#039;; if ($_SERVER[&#039;REQUEST_METHOD&#039;] === &#039;POST&#039;) { $code_id = $_POST[&#039;id&#039;]; $stmt = $conn-&gt;prepare(&quot;DELETE FROM codes WHERE id = ?&quot;); $stmt-&gt;bind_param(&quot;i&quot;, $code_id); if ($stmt-&gt;execute()) { echo &quot;Code deleted successfully&quot;; } else { echo &quot;Error deleting code: &quot; . $conn-&gt;error; } $stmt-&gt;close(); } ?&gt;
