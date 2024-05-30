@@ -1,1 +1,40 @@
-&lt;?php require &#039;config.php&#039;; if ($_SERVER[&#039;REQUEST_METHOD&#039;] === &#039;POST&#039;) { $code_id = $_POST[&#039;id&#039;]; $stmt = $conn-&gt;prepare(&quot;DELETE FROM codes WHERE id = ?&quot;); $stmt-&gt;bind_param(&quot;i&quot;, $code_id); if ($stmt-&gt;execute()) { echo &quot;Code deleted successfully&quot;; } else { echo &quot;Error deleting code: &quot; . $conn-&gt;error; } $stmt-&gt;close(); } ?&gt;
+<?php
+require 'config.php';
+
+if (isset($_GET['id'])) {
+    $task_id = $_GET['id'];
+
+    $stmt = $conn->prepare("SELECT * FROM tasks WHERE id = ?");
+    $stmt->bind_param("i", $task_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $task = $result->fetch_assoc();
+
+    $projects = $conn->query("SELECT id, name FROM projects");
+    $users = $conn->query("SELECT id, name FROM users");
+
+    $projectOptions = '';
+    while ($project = $projects->fetch_assoc()) {
+        $selected = $task['project_id'] == $project['id'] ? 'selected' : '';
+        $projectOptions .= "<option value='{$project['id']}' {$selected}>{$project['name']}</option>";
+    }
+
+    $userOptions = '';
+    while ($user = $users->fetch_assoc()) {
+        $selected = $task['assigned_to'] == $user['id'] ? 'selected' : '';
+        $userOptions .= "<option value='{$user['id']}' {$selected}>{$user['name']}</option>";
+    }
+
+    echo json_encode([
+        'id' => $task['id'],
+        'project_id' => $task['project_id'],
+        'title' => $task['title'],
+        'description' => $task['description'],
+        'priority' => $task['priority'],
+        'status' => $task['status'],
+        'assigned_to' => $task['assigned_to'],
+        'start_date' => $task['start_date'],
+        'end_date' => $task['end_date'],
+        'projectOptions' => $projectOptions,
+  
+?>
