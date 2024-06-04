@@ -1,33 +1,24 @@
-
+<?php
 require 'config.php';
 
-if (isset($_GET['id'])) {
-    $task_id = $_GET['id'];
+$project_id = $_POST['project_id'];
+$title = $_POST['title'];
+$description = $_POST['description'];
+$priority = $_POST['priority'];
+$status = $_POST['status'];
+$assigned_to = $_POST['assigned_to'];
+$start_date = $_POST['start_date'];
+$end_date = $_POST['end_date'];
 
-    $stmt = $conn->prepare("SELECT * FROM tasks WHERE id = ?");
-    $stmt->bind_param("i", $task_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $task = $result->fetch_assoc();
+$stmt = $conn->prepare("INSERT INTO tasks (project_id, title, description, priority, status, assigned_to, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("issssiss", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date);
 
-    $projects = $conn->query("SELECT id, name FROM projects");
-    $users = $conn->query("SELECT id, name FROM users");
+if ($stmt->execute()) {
+    echo "Task added successfully.";
+} else {
+    echo "Error: " . $stmt->error;
+}
 
-    $fetch_assoc()) {
-        $selected = $task['assigned_to'] == $user['id'] ? 'selected' : '';
-        $userOptions .= "<option value='{$user['id']}' {$selected}>{$user['name']}</option>";
-    }
-
-    echo json_encode([
-        'id' => $task['id'],
-        'project_id' => $task['project_id'],
-        'title' => $task['title'],
-        'description' => $task['description'],
-        'priority' => $task['priority'],
-        'status' => $task['status'],
-        'assigned_to' => $task['assigned_to'],
-        'start_date' => $task['start_date'],
-        'end_date' => $task['end_date'],
-        'projectOptions' => $projectOptions,
-  
+$stmt->close();
+$conn->close();
 ?>
