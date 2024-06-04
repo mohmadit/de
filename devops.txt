@@ -1,4 +1,4 @@
-<?php
+
 require 'config.php';
 
 if (isset($_GET['id'])) {
@@ -13,14 +13,7 @@ if (isset($_GET['id'])) {
     $projects = $conn->query("SELECT id, name FROM projects");
     $users = $conn->query("SELECT id, name FROM users");
 
-    $projectOptions = '';
-    while ($project = $projects->fetch_assoc()) {
-        $selected = $task['project_id'] == $project['id'] ? 'selected' : '';
-        $projectOptions .= "<option value='{$project['id']}' {$selected}>{$project['name']}</option>";
-    }
-
-    $userOptions = '';
-    while ($user = $users->fetch_assoc()) {
+    $fetch_assoc()) {
         $selected = $task['assigned_to'] == $user['id'] ? 'selected' : '';
         $userOptions .= "<option value='{$user['id']}' {$selected}>{$user['name']}</option>";
     }
@@ -36,10 +29,5 @@ if (isset($_GET['id'])) {
         'start_date' => $task['start_date'],
         'end_date' => $task['end_date'],
         'projectOptions' => $projectOptions,
-        'userOptions' => $userOptions
-    ]);
-
-    $stmt->close();
-}
-$conn->close();
+  
 ?>
