@@ -1,5 +1,5 @@
-
-require 'config.php'
+<?php
+require 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code_id = $_POST['id'];
@@ -14,5 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "Error updating code: " . $conn->error;
     }
 
-  
+    $stmt->close();
+}
 ?>
