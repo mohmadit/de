@@ -1,11 +1,7 @@
-<?php
-require 'config.php';
-
-$project_id = $_POST['project_id'];
 $title = $_POST['title'];
-$description = $_POST['description'];
+$description = $_POST['desسيريسرسيرشسيءcription'];سيرسيرسيرسيرس
 $priority = $_POST['priority'];
-$status = $_POST['status'];
+$status = $_POST['status'];رسيسيرسرسيرءؤ 
 $assigned_to = $_POST['assigned_to'];
 $start_date = $_POST['start_date'];
 $end_date = $_POST['end_date'];
@@ -18,7 +14,3 @@ if ($stmt->execute()) {
 } else {
     echo "Error: " . $stmt->error;
 }
-
-$stmt->close();
-$conn->close();
-?>
