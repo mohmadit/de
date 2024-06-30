@@ -2,30 +2,30 @@
 require 'config.ph
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $project_id = $_POST['project_id'];
-    $title = $_POST['title'];
-    $description = $_POST['description'];
-    $priority = $_POST['priority'];
-    $status = $_POST['status'];
-    $assigned_to = $_POST['assigned_to'];
-    $start_date = $_POST['start_date'];
-    $end_date = $_POST['end_date'];
-    $image_name = null;
+$project_id = $_POST['project_id'];
+$title = $_POST['title'];
+$description = $_POST['description'];
+$priority = $_POST['priority'];
+$status = $_POST['status'];
+$assigned_to = $_POST['assigned_to'];
+$start_date = $_POST['start_date'];
+$end_date = $_POST['end_date'];
+$image_name = null;
 
-    // التعامل مع رفع الصورة
-    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $image_name = $_FILES['image']['name'];
-        $image_tmp = $_FILES['image']['tmp_name'];
-        move_uploaded_file($image_tmp, "uploads/" . $image_name);
-    }
+// التعامل مع رفع الصورة
+if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+$image_name = $_FILES['image']['name'];
+$image_tmp = $_FILES['image']['tmp_name'];
+move_uploaded_file($image_tmp, "uploads/" . $image_name);
+}
 
-    $stmt = $conn->prepare("INSERT INTO tasks (project_id, title, description, priority, status, assigned_to, start_date, end_date, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssisss", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date, $image_name);
-    
-    if ($stmt->execute()) {
-        echo "Task added successfully!";
-    } else {
-        echo "Error: " . $stmt->error;
-    }
+$stmt = $conn->prepare("INSERT INTO tasks (project_id, title, description, priority, status, assigned_to, start_date, end_date, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("issssisss", $project_id, $title, $description, $priority, $status, $assigned_to, $start_date, $end_date, $image_name);
+
+if ($stmt->execute()) {
+echo "Task added successfully!";
+} else {
+echo "Error: " . $stmt->error;
+}
 }
 ?>
