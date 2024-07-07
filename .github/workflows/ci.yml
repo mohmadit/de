@@ -41,6 +41,6 @@ jobs:
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ls -la ~/.ssh  # تحقق من وجود المفتاح وأذوناته
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@server "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
-          rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@https://6582-94-47-223-138.ngrok-free.app:/path/to/deployment
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@ http://127.0.0.1:4041"echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
+          rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@h http://127.0.0.1:4041:/path/to/deployment
           echo "Deployment completed"
