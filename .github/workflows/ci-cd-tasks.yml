@@ -3,7 +3,7 @@ name: CI/CD for Task Files
 on:
   push:
     paths:
-      - 'projects/**/devops_*.php'
+      - '**/devops_*.php'  # مطابقة جميع ملفات devops_ داخل أي مجلد
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
         php-version: '8.2.12'  # النسخة المحددة من PHP
 
     - name: Validate PHP syntax
-      run: find projects/ -name 'devops_*.php' -exec php -l {} \;
+      run: find . -name 'devops_*.php' -exec php -l {} \;
 
     - name: Run tests
       run: |
@@ -31,4 +31,4 @@ jobs:
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
       run: |
-        rsync -avz -e "ssh -i $DEPLOY_KEY" projects/ user@server:/path/to/deployment
+        rsync -avz -e "ssh -i $DEPLOY_KEY" ./ user@server:/path/to/deployment
