@@ -35,13 +35,12 @@ jobs:
       - name: Deploy to server
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-          NGROK_ADDRESS: 6582-94-47-223-138.ngrok-free.app
         run: |
           echo "Starting deployment"
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > C:/Users/acer/.ssh/id_rsa
-          chmod 600 C:/Users/acer/.ssh/id_rsa
-          ssh-keyscan -H $NGROK_ADDRESS >> C:/Users/acer/.ssh/known_hosts
-          ssh -i C:/Users/acer/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@$NGROK_ADDRESS "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
-          rsync -avz -e "ssh -i C:/Users/acer/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@$NGROK_ADDRESS:/path/to/deployment
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 6582-94-47-223-138.ngrok-free.app >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@6582-94-47-223-138.ngrok-free.app "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
+          rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@6582-94-47-223-138.ngrok-free.app:/path/to/deployment
           echo "Deployment completed"
