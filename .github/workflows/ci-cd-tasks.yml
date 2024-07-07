@@ -1,0 +1,34 @@
+name: CI/CD for Task Files
+
+on:
+  push:
+    paths:
+      - 'projects/**/devops_*.php'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2.12'  # النسخة المحددة من PHP
+
+    - name: Validate PHP syntax
+      run: find projects/ -name 'devops_*.php' -exec php -l {} \;
+
+    - name: Run tests
+      run: |
+        if [ -f "tests/run-tests.sh" ]; then
+          ./tests/run-tests.sh
+        fi
+
+    - name: Deploy to server
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      run: |
+        rsync -avz -e "ssh -i $DEPLOY_KEY" projects/ user@server:/path/to/deployment
