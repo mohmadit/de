@@ -37,19 +37,8 @@ jobs:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
           echo "Verifying SSH connection"
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 127.0.0.1 >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@127.0.0.1 "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
-
-      - name: Deploy to local server
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        run: |
-          echo "Starting deployment"
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@127.0.0.1:/path/to/your/application/folder
-          echo "Deployment completed"
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > $HOME/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
+          ssh-keyscan -H 127.0.0.1 >> $HOME/.ssh/known_hosts
+          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@127.0.0.1 "echo 'SSH connection successful'"
