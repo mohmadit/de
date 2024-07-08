@@ -40,10 +40,10 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 193.34.76.44 >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@193.34.76.44 "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
+          ssh-keyscan -H 127.0.0.1 >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@127.0.0.1 "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
 
-      - name: Deploy to server
+      - name: Deploy to local server
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
@@ -51,7 +51,5 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ls -la ~/.ssh  # تحقق من وجود المفتاح وأذوناته
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@193.34.76.44 "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
-          rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@193.34.76.44:/path/to/deployment
+          rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@127.0.0.1:/path/to/deployment
           echo "Deployment completed"
