@@ -32,15 +32,21 @@ jobs:
             echo "No tests directory found, skipping tests."
           fi
 
-      - name: Deploy to server
+      - name: Verify SSH connection
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
-          echo "Starting deployment"
+          echo "Verifying SSH connection"
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H myuniquesubdomain.loca.lt >> ~/.ssh/known_hosts
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@myuniquesubdomain.loca.lt "echo 'SSH connection successful'" || { echo 'SSH connection failed'; exit 1; }
+
+      - name: Deploy to server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          echo "Starting deployment"
           rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -v" ./ user@myuniquesubdomain.loca.lt:/path/to/deployment
           echo "Deployment completed"
