@@ -41,4 +41,11 @@ jobs:
           echo "${{ secrets.DEPLOY_KEY }}" | tr -d '\r' > $HOME/.ssh/id_rsa
           chmod 600 $HOME/.ssh/id_rsa
           ssh-keyscan -H 127.0.0.1 >> $HOME/.ssh/known_hosts
-          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no -v user@127.0.0.1 "echo 'SSH connection successful'"
+          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "echo 'SSH connection successful'"
+
+      - name: Deploy to Local Server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          echo "Deploying to local server"
+          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "cd /path/to/your/project && git pull origin main"
