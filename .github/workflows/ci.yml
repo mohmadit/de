@@ -32,19 +32,19 @@ jobs:
           }
 
       - name: Deploy to Local Server via HTTPS
-        env:
-          USERNAME: ${{ secrets.HTTPS_USERNAME }}
-          PASSWORD: ${{ secrets.HTTPS_PASSWORD }}
         shell: pwsh  # استخدام PowerShell
+        env:
+          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          GITHUB_PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
         run: |
           echo "Deploying to local server via HTTPS"
-          $baseUrl = "https://127.0.0.1/aqdevops"  # تعديل عنوان الخادم والمسار الذي يجب استخدامه
+          $baseUrl = "https://localhost/aqdevops"
           $repoUrl = "$baseUrl.git"
-          
+
           # Configure Git with HTTPS credentials
           git config --global credential.helper store
-          git config --global user.name $USERNAME
-          git config --global user.password $PASSWORD
-          
+          git config --global user.name $GITHUB_USERNAME
+          git config --global user.password $GITHUB_PASSWORD
+
           # Pull latest changes from main branch
           git pull $repoUrl main
