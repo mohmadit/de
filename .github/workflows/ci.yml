@@ -38,7 +38,7 @@ jobs:
         run: |
           echo "Verifying SSH connection"
           mkdir -p $HOME/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" | tr -d '\r' > $HOME/.ssh/id_rsa
+          echo "${{ secrets.DEPLOY_KEY }}" | base64 --decode > $HOME/.ssh/id_rsa
           chmod 600 $HOME/.ssh/id_rsa
           ssh-keyscan -H 127.0.0.1 >> $HOME/.ssh/known_hosts
           ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "echo 'SSH connection successful'"
