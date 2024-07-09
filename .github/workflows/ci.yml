@@ -7,45 +7,57 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # تحديد نظام التشغيل ويندوز
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2.12'
-
       - name: Validate PHP syntax
+        shell: pwsh  # استخدام PowerShell
         run: |
           echo "Validating PHP syntax"
-          find . -name 'devops_*.php' -exec php -l {} \;
+          Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
+              php -l $_.FullName
+          }
 
       - name: Run tests
+        shell: pwsh  # استخدام PowerShell
         run: |
           echo "Running tests"
-          if [ -d "tests" ]; then
-            ./tests/run-tests.sh
-          else
-            echo "No tests directory found, skipping tests."
-          fi
+          if (Test-Path "tests") {
+              ./tests/run-tests.sh
+          } else {
+              echo "No tests directory found, skipping tests."
+          }
 
       - name: Verify SSH connection
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        shell: pwsh  # استخدام PowerShell
         run: |
           echo "Verifying SSH connection"
-          mkdir -p $HOME/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" | base64 --decode > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
-          ssh-keyscan -H 127.0.0.1 >> $HOME/.ssh/known_hosts
-          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "echo 'SSH connection successful'"
+          $sshFolderPath = "$env:USERPROFILE\.ssh"
+          $acl = Get-Acl $sshFolderPath
+          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+          $acl.SetAccessRule($accessRule)
+          Set-Acl $sshFolderPath $acl
+          
+          $idRsaFilePath = "$sshFolderPath\id_rsa"
+          $idRsaContent = [System.Text.Encoding]::UTF8.GetBytes("${env:DEPLOY_KEY}" | base64 -decode)
+          [System.IO.File]::WriteAllBytes($idRsaFilePath, $idRsaContent)
+          $acl = Get-Acl $idRsaFilePath
+          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "None", "None", "Allow")
+          $acl.SetAccessRule($accessRule)
+          Set-Acl $idRsaFilePath $acl
+
+          ssh-keyscan -H 127.0.0.1 >> $sshFolderPath\known_hosts
+          ssh -i $idRsaFilePath -o StrictHostKeyChecking=no user@127.0.0.1 "echo 'SSH connection successful'"
 
       - name: Deploy to Local Server
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        shell: pwsh  # استخدام PowerShell
         run: |
           echo "Deploying to local server"
-          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "cd /path/to/your/project && git pull origin main"
+          ssh -i $idRsaFilePath -o StrictHostKeyChecking=no user@127.0.0.1 "cd /path/to/your/project && git pull origin main"
