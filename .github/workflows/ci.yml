@@ -36,6 +36,12 @@ jobs:
         run: |
           echo "Verifying SSH connection"
           $sshFolderPath = "$env:USERPROFILE\.ssh"
+          
+          # Ensure .ssh directory exists
+          if (-Not (Test-Path $sshFolderPath)) {
+              New-Item -Path $sshFolderPath -ItemType Directory
+          }
+
           $acl = Get-Acl $sshFolderPath
           $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
           $acl.SetAccessRule($accessRule)
@@ -48,7 +54,7 @@ jobs:
           $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "None", "None", "Allow")
           $acl.SetAccessRule($accessRule)
           Set-Acl $idRsaFilePath $acl
-
+          
           ssh-keyscan -H 127.0.0.1 >> "$sshFolderPath\known_hosts"
           ssh -i $idRsaFilePath -o StrictHostKeyChecking=no user@127.0.0.1 "echo 'SSH connection successful'"
 
