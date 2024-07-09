@@ -44,7 +44,7 @@ jobs:
           Set-Acl $sshFolderPath $acl
           
           $idRsaFilePath = "$sshFolderPath\id_rsa"
-          $idRsaContent = [System.Text.Encoding]::UTF8.GetBytes("${env:DEPLOY_KEY}" | base64 -decode)
+          $idRsaContent = [System.Text.Encoding]::UTF8.GetBytes($env:DEPLOY_KEY | base64 -decode)
           [System.IO.File]::WriteAllBytes($idRsaFilePath, $idRsaContent)
           $acl = Get-Acl $idRsaFilePath
           $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "None", "None", "Allow")
