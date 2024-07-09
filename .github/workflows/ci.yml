@@ -32,19 +32,19 @@ jobs:
           }
 
       - name: Deploy to Local Server via HTTPS
-        shell: pwsh  # استخدام PowerShell
         env:
-          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
-          GITHUB_PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
+          GITHUB_USERNAME: mohmadit
+          GITHUB_PASSWORD: 10200102qwe!@#
+        shell: pwsh  # استخدام PowerShell
         run: |
           echo "Deploying to local server via HTTPS"
           $baseUrl = "https://localhost/aqdevops"
           $repoUrl = "$baseUrl.git"
-
+          
           # Configure Git with HTTPS credentials
           git config --global credential.helper store
-          git config --global user.name $GITHUB_USERNAME
-          git config --global user.password $GITHUB_PASSWORD
-
+          git config --global user.name "$env:GITHUB_USERNAME"
+          git config --global user.password "$env:GITHUB_PASSWORD"
+          
           # Pull latest changes from main branch
           git pull $repoUrl main
