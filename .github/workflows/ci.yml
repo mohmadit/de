@@ -39,9 +39,9 @@ jobs:
         run: |
           echo "Deploying to local server via HTTP"
           $baseUrl = "http://127.0.0.1/aqdevops"
-          $repoUrl = "$baseUrl.git"
+          $repoUrl = " D:/xampp/htdocs/aqdevops/.git"  # تحديد مسار المستودع بشكل صحيح
           
-          # Configure Git with HTTPS credentials
+          # Configure Git with HTTP credentials
           git config --global credential.helper store
           git config --global user.name "$env:GITHUB_USERNAME"
           git config --global user.password "$env:GITHUB_PASSWORD"
