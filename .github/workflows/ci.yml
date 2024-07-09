@@ -3,26 +3,26 @@ name: CI/CD for Task Files
 on:
   push:
     paths:
-      - '**/devops_*.php'
+      - '**/tasks/*.php'  # تحديث المسار ليشمل ملفات المهام فقط
 
 jobs:
   build:
-    runs-on: windows-latest  # تحديد نظام التشغيل ويندوز
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Validate PHP syntax
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
           echo "Validating PHP syntax"
-          Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
+          Get-ChildItem -Path . -Filter 'tasks/*.php' -Recurse | ForEach-Object {
               php -l $_.FullName
           }
 
       - name: Run tests
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
           echo "Running tests"
           if (Test-Path "tests") {
@@ -34,18 +34,18 @@ jobs:
       - name: Verify SSH connection
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
           echo "Verifying SSH connection"
           $sshFolderPath = "$env:USERPROFILE\.ssh"
-          $acl = Get-Acl $sshFolderPath
-          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-          $acl.SetAccessRule($accessRule)
-          Set-Acl $sshFolderPath $acl
-          
+          if (-not (Test-Path $sshFolderPath)) {
+              New-Item -Path $sshFolderPath -ItemType Directory
+          }
+
           $idRsaFilePath = "$sshFolderPath\id_rsa"
-          $idRsaContent = [System.Text.Encoding]::UTF8.GetBytes($env:DEPLOY_KEY | base64 -decode)
+          $idRsaContent = [System.Convert]::FromBase64String($env:DEPLOY_KEY)
           [System.IO.File]::WriteAllBytes($idRsaFilePath, $idRsaContent)
+          (Get-Item $idRsaFilePath).Attributes = 'ReadOnly'
           $acl = Get-Acl $idRsaFilePath
           $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "None", "None", "Allow")
           $acl.SetAccessRule($accessRule)
@@ -57,7 +57,7 @@ jobs:
       - name: Deploy to Local Server
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
           echo "Deploying to local server"
           ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "cd /d/xampp/htdocs/aqdevops && git pull origin main"
