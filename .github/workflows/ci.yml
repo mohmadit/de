@@ -31,43 +31,20 @@ jobs:
               echo "No tests directory found, skipping tests."
           }
 
-      - name: Verify SSH connection
+      - name: Deploy to Local Server via HTTPS
         env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          USERNAME: ${{ secrets.HTTPS_USERNAME }}
+          PASSWORD: ${{ secrets.HTTPS_PASSWORD }}
         shell: pwsh  # استخدام PowerShell
         run: |
-          echo "Verifying SSH connection"
-          $sshFolderPath = "$env:USERPROFILE\.ssh"
+          echo "Deploying to local server via HTTPS"
+          $baseUrl = "https://127.0.0.1/aqdevops"  # تعديل عنوان الخادم والمسار الذي يجب استخدامه
+          $repoUrl = "$baseUrl.git"
           
-          # Ensure .ssh directory exists
-          if (-Not (Test-Path $sshFolderPath)) {
-              New-Item -Path $sshFolderPath -ItemType Directory
-          }
+          # Configure Git with HTTPS credentials
+          git config --global credential.helper store
+          git config --global user.name $USERNAME
+          git config --global user.password $PASSWORD
           
-          $acl = Get-Acl $sshFolderPath
-          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-          $acl.SetAccessRule($accessRule)
-          Set-Acl $sshFolderPath $acl
-          
-          $idRsaFilePath = "$sshFolderPath\id_rsa"
-          $idRsaContent = [System.Text.Encoding]::UTF8.GetBytes([System.Convert]::FromBase64String($env:DEPLOY_KEY))
-          [System.IO.File]::WriteAllBytes($idRsaFilePath, $idRsaContent)
-          $acl = Get-Acl $idRsaFilePath
-          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "FullControl", "None", "None", "Allow")
-          $acl.SetAccessRule($accessRule)
-          Set-Acl $idRsaFilePath $acl
-          
-          ssh-keyscan -H 127.0.0.1 >> "$sshFolderPath\known_hosts"
-
-          # Ensure SSH service is running
-          Start-Service sshd
-
-          ssh -i $idRsaFilePath -o StrictHostKeyChecking=no user@127.0.0.1 "echo 'SSH connection successful'"
-
-      - name: Deploy to Local Server
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        shell: pwsh  # استخدام PowerShell
-        run: |
-          echo "Deploying to local server"
-          ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no user@127.0.0.1 "cd /d/xampp/htdocs/aqdevops && git pull origin main"
+          # Pull latest changes from main branch
+          git pull $repoUrl main
