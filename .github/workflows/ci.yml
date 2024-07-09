@@ -7,14 +7,14 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # تحديد نظام التشغيل ويندوز
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Validate PHP syntax
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
           echo "Validating PHP syntax"
           Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
@@ -22,7 +22,7 @@ jobs:
           }
 
       - name: Run tests
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
           echo "Running tests"
           if (Test-Path "tests") {
@@ -31,13 +31,13 @@ jobs:
               echo "No tests directory found, skipping tests."
           }
 
-      - name: Deploy to Local Server via HTTPS
+      - name: Deploy to Local Server via HTTP
         env:
           GITHUB_USERNAME: mohmadit
           GITHUB_PASSWORD: 10200102qwe!@#
-        shell: pwsh  # استخدام PowerShell
+        shell: pwsh
         run: |
-          echo "Deploying to local server via HTTPS"
+          echo "Deploying to local server via HTTP"
           $baseUrl = "http://127.0.0.1/aqdevops"
           $repoUrl = "$baseUrl.git"
           
