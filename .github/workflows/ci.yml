@@ -32,14 +32,8 @@ jobs:
           }
 
       - name: Upload results
-  shell: bash
-  run: |
-    echo "Uploading results"
-    echo "Validation Results:" > validation_results.txt
-    Get-Content validation_results.txt >> validation_results.txt
-    
-    echo "Test Results:" > test_results.txt
-    Get-Content test_results.txt >> test_results.txt
-
-    curl -X POST -H "Content-Type: text/plain" --data-binary @validation_results.txt "http://127.0.0.1/aqdevops/upload.php?type=validation"
-    curl -X POST -H "Content-Type: text/plain" --data-binary @test_results.txt "http://127.0.0.1/aqdevops/upload.php?type=test"
+        shell: bash
+        run: |
+          echo "Uploading results"
+          curl -X POST -H "Content-Type: text/plain" --data-binary @validation_results.txt "http://127.0.0.1/aqdevops/upload.php?type=validation"
+          curl -X POST -H "Content-Type: text/plain" --data-binary @test_results.txt "http://127.0.0.1/aqdevops/upload.php?type=test"
