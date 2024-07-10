@@ -16,24 +16,29 @@ jobs:
       - name: Validate PHP syntax
         shell: pwsh
         run: |
-          echo "Validating PHP syntax" > D:/xampp/htdocs/aqdevops/results/validation_results.txt
+          echo "Validating PHP syntax" > validation_results.txt
           Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
-              php -l $_.FullName >> D:/xampp/htdocs/aqdevops/results/validation_results.txt
+              php -l $_.FullName >> validation_results.txt
           }
 
       - name: Run tests
         shell: pwsh
         run: |
-          echo "Running tests" > D:/xampp/htdocs/aqdevops/results/test_results.txt
+          echo "Running tests" > test_results.txt
           if (Test-Path "tests") {
-              ./tests/run-tests.sh >> D:/xampp/htdocs/aqdevops/results/test_results.txt
+              ./tests/run-tests.sh >> test_results.txt
           } else {
-              echo "No tests directory found, skipping tests." >> D:/xampp/htdocs/aqdevops/results/test_results.txt
+              echo "No tests directory found, skipping tests." >> test_results.txt
           }
 
-      - name: Upload results
-        shell: bash
-        run: |
-          echo "Uploading results"
-          curl -X POST -H "Content-Type: text/plain" --data-binary @D:/xampp/htdocs/aqdevops/results/validation_results.txt "http://127.0.0.1/aqdevops/upload.php?type=validation"
-          curl -X POST -H "Content-Type: text/plain" --data-binary @D:/xampp/htdocs/aqdevops/results/test_results.txt "http://127.0.0.1/aqdevops/upload.php?type=test"
+      - name: Upload validation results artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: validation_results
+          path: validation_results.txt
+
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: test_results
+          path: test_results.txt
