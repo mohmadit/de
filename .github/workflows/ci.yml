@@ -32,6 +32,7 @@ jobs:
           }
 
       - name: Upload results
+        shell: bash
         run: |
           echo "Uploading results"
           curl -X POST -H "Content-Type: text/plain" --data-binary @validation_results.txt http://127.0.0.1/aqdevops/upload.php?type=validation
