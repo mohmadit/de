@@ -30,16 +30,3 @@ jobs:
           } else {
               echo "No tests directory found, skipping tests."
           }
-
-      - name: Deploy to Local Server via HTTP
-        env:
-          GITHUB_USERNAME: mohmadit
-          GITHUB_PASSWORD: 10200102qwe!@#
-        shell: pwsh
-        run: |
-          echo "Deploying to local server via HTTP"
-          cd D:/xampp/htdocs/aqdevops
-          git config --global credential.helper store
-          git config --global user.name "$env:GITHUB_USERNAME"
-          git config --global user.password "$env:GITHUB_PASSWORD"
-          git pull origin main
