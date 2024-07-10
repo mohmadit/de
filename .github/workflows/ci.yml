@@ -38,13 +38,8 @@ jobs:
         shell: pwsh
         run: |
           echo "Deploying to local server via HTTP"
-          $baseUrl = "http://127.0.0.1/aqdevops"
-          $repoUrl = "D:/xampp/htdocs/aqdevops"  # تحديد مسار المستودع بشكل صحيح
-          
-          # Configure Git with HTTP credentials
+          cd D:/xampp/htdocs/aqdevops
           git config --global credential.helper store
           git config --global user.name "$env:GITHUB_USERNAME"
           git config --global user.password "$env:GITHUB_PASSWORD"
-          
-          # Pull latest changes from main branch
-          git pull $repoUrl main
+          git pull origin main
