@@ -19,21 +19,6 @@ jobs:
           php-version: '8.2'
           tools: composer
 
-      - name: Extract Task ID from file name
-        id: extract_task_id
-        shell: pwsh
-        run: |
-          $fileName = (Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | Select-Object -First 1).Name
-          Write-Host "Found file: $fileName"
-          if ($fileName -match 'devops_add_(\d+)') {
-              $taskId = $matches[1]
-              Write-Host "Extracted Task ID: $taskId"
-              echo "::set-output name=task_id::$taskId"
-          } else {
-              Write-Error "Failed to extract Task ID from file name: $fileName"
-              exit 1
-          }
-
       - name: Validate PHP syntax
         id: validate
         shell: pwsh
@@ -58,12 +43,26 @@ jobs:
           }
           echo "::set-output name=test_result::$result"
 
+      - name: Extract task ID
+        id: extract_task_id
+        shell: pwsh
+        run: |
+          $file = Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | Select-Object -First 1
+          if ($null -ne $file) {
+              $fileName = $file.Name
+              $taskId = $fileName -match 'devops_add_(\d+)' | Out-Null; $matches[1]
+              echo "::set-output name=task_id::$taskId"
+          } else {
+              echo "::error::No matching files found"
+              exit 1
+          }
+
       - name: Send results to API
         shell: pwsh
         run: |
-          $task_id = "${{ steps.extract_task_id.outputs.task_id }}"
           $validation_results = "${{ steps.validate.outputs.validation_result }}"
           $test_results = "${{ steps.tests.outputs.test_result }}"
+          $task_id = "${{ steps.extract_task_id.outputs.task_id }}"
           $payload = @{
               task_id = $task_id
               validation_results = $validation_results
