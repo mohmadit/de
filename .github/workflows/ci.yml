@@ -24,9 +24,13 @@ jobs:
     - name: Install dependencies
       run: composer install
 
+    - name: List files in workspace
+      run: |
+        Get-ChildItem -Recurse
+      shell: pwsh
+
     - name: Ensure tests directory exists
       run: |
-        Write-Host "Checking for tests directory..."
         if (Test-Path -Path "$env:GITHUB_WORKSPACE/tests") {
           Write-Host "Tests directory exists."
         } else {
