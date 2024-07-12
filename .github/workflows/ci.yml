@@ -24,9 +24,10 @@ jobs:
     - name: Install dependencies
       run: composer install
 
-    - name: List files in workspace
+    - name: List modified files
       run: |
-        find . -name 'devops_*.php'
+        git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'devops_.*\.php' > modified_files.txt
+        cat modified_files.txt
 
     - name: Ensure tests directory exists
       run: |
@@ -37,13 +38,14 @@ jobs:
           exit 1
         fi
 
-    - name: Run tests on modified file
+    - name: Run tests on modified files
       run: |
-        TARGET_FILE=$(echo "${{ github.event.head_commit.modified }}" | grep 'devops_.*\.php' | head -n 1)
-        if [ -z "$TARGET_FILE" ]; then
+        if [ -s modified_files.txt ]; then
+          while IFS= read -r TARGET_FILE; do
+            echo "Running tests on $TARGET_FILE"
+            php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml "$TARGET_FILE"
+          done < modified_files.txt
+        else
           echo "No devops files modified."
           exit 1
-        else
-          echo "Running tests on $TARGET_FILE"
-          TARGET_FILE=$TARGET_FILE php vendor/bin/phpunit --configuration phpunit.xml
         fi
