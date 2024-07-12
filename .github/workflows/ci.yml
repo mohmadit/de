@@ -26,8 +26,7 @@ jobs:
 
     - name: List modified files
       run: |
-        git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'devops_.*\.php' > modified_files.txt
-        cat modified_files.txt
+        git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'devops_.*\.php' > modified_files.txt || echo "No devops files modified."
 
     - name: Ensure tests directory exists
       run: |
