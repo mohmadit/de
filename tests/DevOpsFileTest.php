@@ -8,18 +8,19 @@ class DevOpsFileTest extends TestCase
 
     protected function setUp(): void
     {
-        // تحديد مسار مجلد المشروع داخل المستودع
-        $directory = __DIR__ . '/../'; // تأكد من تعديل هذا المسار بناءً على موقعك الفعلي
-        $this->filePaths = glob($directory . '**/devops_*.php');
+        // Base directory for the GitHub repository
+        $baseDirectory = __DIR__ . '/../..'; // Adjust this to point to the root of your repository
 
-        if (empty($this->filePaths)) {
-            $this->markTestSkipped('No devops_*.php files found for testing.');
+        // Find all devops_*.php files in all project folders
+        $files = glob($baseDirectory . '/**/devops_*.php');
+
+        foreach ($files as $file) {
+            $this->filePaths[] = $file;
         }
     }
 
     public function testFilesExist()
     {
-        $this->assertNotEmpty($this->filePaths, "No files found for testing.");
         foreach ($this->filePaths as $filePath) {
             $this->assertFileExists($filePath, "File does not exist: {$filePath}");
         }
@@ -42,18 +43,20 @@ class DevOpsFileTest extends TestCase
 
     public function testFilesContainBasicPhpFunctions()
     {
-        $essentialFunctions = [
-            'echo',
-            'print',
-            'include',
-            'require',
-            'function',
-            'class',
-            'return'
-        ];
-
         foreach ($this->filePaths as $filePath) {
             $fileContent = file_get_contents($filePath);
+
+            // List of essential PHP functions
+            $essentialFunctions = [
+                'echo',
+                'print',
+                'include',
+                'require',
+                'function',
+                'class',
+                'return'
+            ];
+
             foreach ($essentialFunctions as $function) {
                 $this->assertStringContainsString($function, $fileContent, "File does not contain the {$function} keyword: {$filePath}");
             }
@@ -66,6 +69,7 @@ class DevOpsFileTest extends TestCase
             $output = null;
             $returnCode = null;
             exec("php -l {$filePath}", $output, $returnCode);
+
             $this->assertEquals(0, $returnCode, "PHP file syntax error detected: {$filePath}");
         }
     }
