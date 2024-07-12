@@ -2,5 +2,13 @@
 <phpunit bootstrap="vendor/autoload.php">
   <testsuites>
     <testsuite name="Application Test Suite">
+      <!-- تأكد من أن المسار يتطابق مع مكان تخزين اختباراتك -->
       <directory>./tests</directory>
-    </tests>
+    </testsuite>
+  </testsuites>
+  <!-- إعدادات إضافية يمكن إضافتها هنا -->
+  <logging>
+    <!-- يمكنك تسجيل نتائج الاختبارات في ملف -->
+    <junit outputFile="build/logs/phpunit.xml"/>
+  </logging>
+</phpunit>
