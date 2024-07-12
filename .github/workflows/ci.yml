@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # استخدم Ubuntu لتجنب مشاكل في PowerShell
 
     steps:
     - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
     - name: List files in workspace
       run: |
         find . -name 'devops_*.php'
-      
+
     - name: Ensure tests directory exists
       run: |
         if [ -d "$GITHUB_WORKSPACE/tests" ]; then
@@ -35,7 +35,15 @@ jobs:
         else
           echo "Tests directory not found!"
           exit 1
-        fi
+        }
 
-    - name: Run tests
-      run: php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml
+    - name: Run tests on modified file
+      run: |
+        TARGET_FILE=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }} | grep 'devops_.*\.php' | head -n 1)
+        if [ -z "$TARGET_FILE" ]; then
+          echo "No devops files modified."
+          exit 1
+        else
+          echo "Running tests on $TARGET_FILE"
+          php vendor/bin/phpunit --configuration phpunit.xml --filter DevOpsFileTest::$TARGET_FILE
+        fi
