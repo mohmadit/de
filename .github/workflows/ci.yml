@@ -13,32 +13,42 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
       - name: Validate PHP syntax
         shell: pwsh
         run: |
-          echo "Validating PHP syntax" > validation_results.txt
+          echo "Validating PHP syntax"
+          $result = ""
           Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
-              php -l $_.FullName >> validation_results.txt
+              $result += php -l $_.FullName + "`n"
           }
+          echo "result=$result" >> $GITHUB_ENV
 
       - name: Run tests
         shell: pwsh
         run: |
-          echo "Running tests" > test_results.txt
+          echo "Running tests"
           if (Test-Path "tests") {
-              ./tests/run-tests.sh >> test_results.txt
+              $result = ./tests/run-tests.sh
           } else {
-              echo "No tests directory found, skipping tests." >> test_results.txt
+              $result = "No tests directory found, skipping tests."
           }
+          echo "test_result=$result" >> $GITHUB_ENV
 
-      - name: Upload validation results artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: validation_results
-          path: validation_results.txt
+      - name: Send results to API
+        shell: pwsh
+        run: |
+          $validation_results = "${{ env.result }}"
+          $test_results = "${{ env.test_result }}"
+          $payload = @{
+              task_id = ${{ github.event.inputs.task_id }}
+              validation_results = $validation_results
+              test_results = $test_results
+          } | ConvertTo-Json
 
-      - name: Upload test results artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: test_results
-          path: test_results.txt
+          Invoke-RestMethod -Uri 'http://127.0.0.1/aqdevops/api/save_results.php' -Method Post -Body $payload -ContentType 'application/json'
