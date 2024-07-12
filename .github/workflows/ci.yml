@@ -45,5 +45,5 @@ jobs:
           exit 1
         else
           echo "Running tests on $TARGET_FILE"
-          php vendor/bin/phpunit --configuration phpunit.xml --filter DevOpsFileTest::$TARGET_FILE
+          TARGET_FILE=$TARGET_FILE php vendor/bin/phpunit --configuration phpunit.xml --filter DevOpsFileTest
         fi
