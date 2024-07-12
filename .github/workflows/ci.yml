@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -26,24 +26,25 @@ jobs:
 
     - name: List files in workspace
       run: |
-        Get-ChildItem -Recurse
-      shell: pwsh
+        ls -R
+      shell: bash
 
     - name: Ensure tests directory exists
       run: |
-        if (Test-Path -Path "$env:GITHUB_WORKSPACE/tests") {
-          Write-Host "Tests directory exists."
-        } else {
-          Write-Error "Tests directory not found!"
+        if [ -d "tests" ]; then
+          echo "Tests directory exists."
+        else
+          echo "Tests directory not found!"
           exit 1
-        }
-      shell: pwsh
+        fi
+      shell: bash
 
     - name: Run tests
-      run: php vendor\bin\phpunit --configuration phpunit.xml
+      run: php vendor/bin/phpunit --configuration phpunit.xml
+      shell: bash
 
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
 
     steps:
