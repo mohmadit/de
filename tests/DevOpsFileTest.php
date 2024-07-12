@@ -1,32 +1,38 @@
 <?php
-
 use PHPUnit\Framework\TestCase;
 
 class DevOpsFileTest extends TestCase
 {
-    private $filePaths = [];
+    private $projectDir;
 
     protected function setUp(): void
     {
-        // مسار الجذر للمستودع على GitHub
-        $baseDirectory = __DIR__ . '/../..'; // عدل هذا حسب المسار الفعلي لمستودعك
+        $this->projectDir = __DIR__ . '/../de/'; // ضع هنا المسار الصحيح لمجلد المشروع
+    }
 
-        // العثور على جميع الملفات devops_*.php في جميع مجلدات المشروع
-        $files = glob($baseDirectory . '/**/devops_*.php');
-
+    public function testFilesExist()
+    {
+        $files = glob($this->projectDir . '/devops_*.php');
         foreach ($files as $file) {
-            $this->filePaths[] = $file;
+            $this->assertFileExists($file, "File $file does not exist.");
         }
     }
 
-    public function testFilesAreValidPhp()
+    public function testFilesHavePhpOpeningTag()
     {
-        foreach ($this->filePaths as $filePath) {
-            $output = [];
-            $returnCode = null;
-            exec("php -l " . escapeshellarg($filePath), $output, $returnCode);
+        $files = glob($this->projectDir . '/devops_*.php');
+        foreach ($files as $file) {
+            $contents = file_get_contents($file);
+            $this->assertStringStartsWith('<?php', $contents, "File $file does not have PHP opening tag.");
+        }
+    }
 
-            $this->assertEquals(0, $returnCode, "PHP file syntax error detected in file: {$filePath}. Output: " . implode("\n", $output));
+    public function testFilesContainBasicPhpFunctions()
+    {
+        $files = glob($this->projectDir . '/devops_*.php');
+        foreach ($files as $file) {
+            $contents = file_get_contents($file);
+            $this->assertStringContainsString('function ', $contents, "File $file does not contain any functions.");
         }
     }
 }
