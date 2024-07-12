@@ -1,14 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="vendor/autoload.php">
-  <testsuites>
-    <testsuite name="Application Test Suite">
-      <!-- تأكد من أن المسار يتطابق مع مكان تخزين اختباراتك -->
-      <directory>./tests</directory>
-    </testsuite>
-  </testsuites>
-  <!-- إعدادات إضافية يمكن إضافتها هنا -->
-  <logging>
-    <!-- يمكنك تسجيل نتائج الاختبارات في ملف -->
-    <junit outputFile="build/logs/phpunit.xml"/>
-  </logging>
+<phpunit
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    verbose="true"
+    stopOnFailure="true"
+    >
+    
+    <!-- Path to your test files -->
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./tests</directory> <!-- يجب أن يكون هذا المسار إلى مجلد الاختبارات -->
+        </testsuite>
+    </testsuites>
+    
+    <!-- Configuration for logging -->
+    <logging>
+        <log type="junit" target="junit-report.xml" />
+    </logging>
+
+    <!-- Configuration for coverage reporting (if needed) -->
+    <coverage>
+        <include>
+            <directory>src</directory> <!-- ضع هنا مسار مجلد الأكواد المصدرية -->
+        </include>
+        <exclude>
+            <directory>tests</directory> <!-- لا تقم بتضمين ملفات الاختبارات في تقرير التغطية -->
+        </exclude>
+    </coverage>
+
+    <!-- Configure PHP settings for tests -->
+    <php>
+        <!-- Add any PHP settings you want to override for the tests -->
+        <ini name="memory_limit" value="512M"/>
+    </php>
+
+    <!-- Configure test listeners (optional) -->
+    <listeners>
+        <listener class="MyCustomListener" file="path/to/MyCustomListener.php" />
+    </listeners>
+
 </phpunit>
