@@ -26,12 +26,13 @@ jobs:
 
     - name: Ensure tests directory exists
       run: |
-        if (Test-Path -Path "./tests") {
+        if (Test-Path -Path "$env:GITHUB_WORKSPACE\tests") {
           Write-Host "Tests directory exists."
         } else {
           Write-Error "Tests directory not found!"
           exit 1
         }
+      shell: pwsh
 
     - name: Run tests
       run: php vendor\bin\phpunit --configuration phpunit.xml  # تأكد من أن لديك إعدادات PHPUnit صحيحة
