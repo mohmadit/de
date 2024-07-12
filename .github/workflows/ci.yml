@@ -1,78 +1,39 @@
-name: CI/CD Pipeline
+name: CI/CD for Task Files
 
 on:
   push:
+    paths:
+      - '**/devops_*.php'  # تحديد مسار ملفات المهام
+  pull_request:
     paths:
       - '**/devops_*.php'
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-latest  # استخدام نظام التشغيل Windows
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          tools: composer
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'  # تأكد من استخدام إصدار PHP المناسب
 
-      - name: Validate PHP syntax
-        id: validate
-        shell: pwsh
-        run: |
-          echo "Validating PHP syntax"
-          $result = ""
-          Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
-              $result += php -l $_.FullName + "`n"
-          }
-          echo "::set-output name=validation_result::$result"
+    - name: Install dependencies
+      run: composer install  # إذا كنت تستخدم Composer
 
-      - name: Extract task ID
-        id: extract_task_id
-        shell: pwsh
-        run: |
-          $file = Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | Select-Object -First 1
-          if ($null -ne $file) {
-              $fileName = $file.Name
-              if ($fileName -match 'devops_add_(\d+)') {
-                  $matches[1] -match '(\d+)'
-                  $taskId = $matches[1]
-                  echo "::set-output name=task_id::$taskId"
-              } else {
-                  echo "::error::No matching task ID found in the file name"
-                  exit 1
-              }
-          } else {
-              echo "::error::No matching files found"
-              exit 1
-          }
+    - name: Run tests
+      run: ./vendor/bin/phpunit --configuration phpunit.xml  # تأكد من أن لديك إعدادات PHPUnit صحيحة
 
-      - name: Run tests
-        id: tests
-        shell: pwsh
-        run: |
-          echo "Running tests"
-          $result = ""
-          if (Test-Path "tests") {
-              $result = ./tests/run-tests.sh
-          } else {
-              $result = "No tests directory found, skipping tests."
-          }
-          echo "::set-output name=test_result::$result"
+  deploy:
+    runs-on: windows-latest
+    needs: build
 
-      - name: Send results to API
-        shell: pwsh
-        run: |
-          $validation_results = "${{ steps.validate.outputs.validation_result }}"
-          $test_results = "${{ steps.tests.outputs.test_result }}"
-          $task_id = "${{ steps.extract_task_id.outputs.task_id }}"
-          $payload = @{
-              task_id = $task_id
-              validation_results = $validation_results
-              test_results = $test_results
-          } | ConvertTo-Json
-          
-          Invoke-RestMethod -Uri 'http://127.0.0.1/aqdevops/api/save_results.php' -Method Post -Body $payload -ContentType 'application/json'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy code
+      run: echo "Deploying your code..."  # هنا تضيف أوامر النشر الخاصة بك
