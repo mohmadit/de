@@ -19,6 +19,14 @@ jobs:
           php-version: '8.2'
           tools: composer
 
+      - name: Extract Task ID from file name
+        id: extract_task_id
+        shell: pwsh
+        run: |
+          $fileName = (Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | Select-Object -First 1).Name
+          $taskId = $fileName -match 'devops_add_(\d+)' | Out-Null; $matches[1]
+          echo "::set-output name=task_id::$taskId"
+
       - name: Validate PHP syntax
         id: validate
         shell: pwsh
@@ -46,10 +54,11 @@ jobs:
       - name: Send results to API
         shell: pwsh
         run: |
+          $task_id = "${{ steps.extract_task_id.outputs.task_id }}"
           $validation_results = "${{ steps.validate.outputs.validation_result }}"
           $test_results = "${{ steps.tests.outputs.test_result }}"
           $payload = @{
-              task_id = 26 # تعديل هذا الرقم وفقاً لمعرف المهمة الخاص بك
+              task_id = $task_id
               validation_results = $validation_results
               test_results = $test_results
           } | ConvertTo-Json
