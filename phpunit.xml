@@ -1,32 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<phpunit
-    bootstrap="vendor/autoload.php"
-    colors="true"
-    verbose="true"
-    stopOnFailure="true"
-    >
-    
+<phpunit bootstrap="vendor/autoload.php"
+         colors="true">
     <testsuites>
-        <testsuite name="Application Test Suite">
-            <directory>./tests</directory>
+        <testsuite name="DevOps Tests">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
-    
-    <logging>
-        <log type="junit" target="junit-report.xml" />
-    </logging>
-
-    <coverage>
-        <include>
-            <directory>src</directory>
-        </include>
-        <exclude>
-            <directory>tests</directory>
-        </exclude>
-    </coverage>
-
-    <php>
-        <ini name="memory_limit" value="512M"/>
-    </php>
-
 </phpunit>
+
+    
+  
