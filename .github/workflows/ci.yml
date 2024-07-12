@@ -24,8 +24,15 @@ jobs:
         shell: pwsh
         run: |
           $fileName = (Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | Select-Object -First 1).Name
-          $taskId = $fileName -match 'devops_add_(\d+)' | Out-Null; $matches[1]
-          echo "::set-output name=task_id::$taskId"
+          Write-Host "Found file: $fileName"
+          if ($fileName -match 'devops_add_(\d+)') {
+              $taskId = $matches[1]
+              Write-Host "Extracted Task ID: $taskId"
+              echo "::set-output name=task_id::$taskId"
+          } else {
+              Write-Error "Failed to extract Task ID from file name: $fileName"
+              exit 1
+          }
 
       - name: Validate PHP syntax
         id: validate
