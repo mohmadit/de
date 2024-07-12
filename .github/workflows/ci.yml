@@ -20,6 +20,7 @@ jobs:
           tools: composer
 
       - name: Validate PHP syntax
+        id: validate
         shell: pwsh
         run: |
           echo "Validating PHP syntax"
@@ -27,28 +28,30 @@ jobs:
           Get-ChildItem -Path . -Filter 'devops_*.php' -Recurse | ForEach-Object {
               $result += php -l $_.FullName + "`n"
           }
-          echo "result=$result" >> $GITHUB_ENV
+          echo "::set-output name=validation_result::$result"
 
       - name: Run tests
+        id: tests
         shell: pwsh
         run: |
           echo "Running tests"
+          $result = ""
           if (Test-Path "tests") {
               $result = ./tests/run-tests.sh
           } else {
               $result = "No tests directory found, skipping tests."
           }
-          echo "test_result=$result" >> $GITHUB_ENV
+          echo "::set-output name=test_result::$result"
 
       - name: Send results to API
         shell: pwsh
         run: |
-          $validation_results = "${{ env.result }}"
-          $test_results = "${{ env.test_result }}"
+          $validation_results = "${{ steps.validate.outputs.validation_result }}"
+          $test_results = "${{ steps.tests.outputs.test_result }}"
           $payload = @{
-              task_id = ${{ github.event.inputs.task_id }}
+              task_id = 26 # تعديل هذا الرقم وفقاً لمعرف المهمة الخاص بك
               validation_results = $validation_results
               test_results = $test_results
           } | ConvertTo-Json
-
+          
           Invoke-RestMethod -Uri 'http://127.0.0.1/aqdevops/api/save_results.php' -Method Post -Body $payload -ContentType 'application/json'
