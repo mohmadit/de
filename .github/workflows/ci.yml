@@ -27,7 +27,7 @@ jobs:
     - name: List files in workspace
       run: |
         find . -name 'devops_*.php'
-
+      
     - name: Ensure tests directory exists
       run: |
         if [ -d "$GITHUB_WORKSPACE/tests" ]; then
@@ -35,7 +35,7 @@ jobs:
         else
           echo "Tests directory not found!"
           exit 1
-        }
+        fi
 
     - name: Run tests
       run: php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml
