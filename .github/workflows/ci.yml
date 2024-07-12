@@ -50,12 +50,19 @@ jobs:
         for file in $(echo ${{ steps.changed-files.outputs.all_changed_files }}); do
           echo "Testing $file"
           php -l $file
-          # Check for PHP tags and functions
-          if grep -q '<?php' "$file" && grep -q 'function' "$file"; then
-            echo "PHP code and functions found in $file"
+          # Check for PHP tags
+          if grep -q '<?php' "$file" && grep -q '?>' "$file"; then
+            echo "PHP opening and closing tags found in $file"
           else
-            echo "PHP code or functions not found in $file"
+            echo "PHP opening or closing tag not found in $file"
             exit 1
+          fi
+
+          # Optional check for PHP functions
+          if grep -q 'function' "$file"; then
+            echo "PHP functions found in $file"
+          else
+            echo "No PHP functions found in $file, but continuing..."
           fi
         done
       shell: bash
