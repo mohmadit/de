@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -24,27 +24,20 @@ jobs:
     - name: Install dependencies
       run: composer install
 
-    - name: List modified files
+    - name: List files in workspace
       run: |
-        git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'devops_.*\.php' > modified_files.txt || echo "No devops files modified."
+        Get-ChildItem -Recurse
+      shell: pwsh
 
     - name: Ensure tests directory exists
       run: |
-        if [ -d "$GITHUB_WORKSPACE/tests" ]; then
-          echo "Tests directory exists."
-        else
-          echo "Tests directory not found!"
+        if (Test-Path -Path "$env:GITHUB_WORKSPACE/tests") {
+          Write-Host "Tests directory exists."
+        } else {
+          Write-Error "Tests directory not found!"
           exit 1
-        fi
+        }
+      shell: pwsh
 
-    - name: Run tests on modified files
-      run: |
-        if [ -s modified_files.txt ]; then
-          while IFS= read -r TARGET_FILE; do
-            echo "Running tests on $TARGET_FILE"
-            php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml "$TARGET_FILE"
-          done < modified_files.txt
-        else
-          echo "No devops files modified."
-          exit 1
-        fi
+    - name: Run tests
+      run: php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml
