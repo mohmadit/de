@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # استخدم Ubuntu لتجنب مشاكل في PowerShell
 
     steps:
     - name: Checkout code
@@ -26,18 +26,16 @@ jobs:
 
     - name: List files in workspace
       run: |
-        Get-ChildItem -Recurse
-      shell: pwsh
-
+        find . -name 'devops_*.php'
+      
     - name: Ensure tests directory exists
       run: |
-        if (Test-Path -Path "$env:GITHUB_WORKSPACE/tests") {
-          Write-Host "Tests directory exists."
-        } else {
-          Write-Error "Tests directory not found!"
+        if [ -d "$GITHUB_WORKSPACE/tests" ]; then
+          echo "Tests directory exists."
+        else
+          echo "Tests directory not found!"
           exit 1
         }
-      shell: pwsh
 
     - name: Run tests
       run: php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml
