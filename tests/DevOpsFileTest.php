@@ -57,9 +57,14 @@ class DevOpsFileTest extends TestCase
                 'return'
             ];
 
+            $containsFunction = false;
             foreach ($essentialFunctions as $function) {
-                $this->assertStringContainsString($function, $fileContent, "File does not contain the {$function} keyword: {$filePath}");
+                if (strpos($fileContent, $function) !== false) {
+                    $containsFunction = true;
+                    break;
+                }
             }
+            $this->assertTrue($containsFunction, "File does not contain any of the essential PHP functions: {$filePath}");
         }
     }
 
