@@ -39,10 +39,24 @@ jobs:
         }
       shell: pwsh
 
+    - name: Check PHPUnit configuration
+      run: |
+        if (-Not (Test-Path -Path "$env:GITHUB_WORKSPACE/phpunit.xml")) {
+          Write-Error "phpunit.xml not found!"
+          exit 1
+        }
+      shell: pwsh
+
     - name: Run tests
       run: |
-        php vendor/bin/phpunit --configuration phpunit.xml
+        php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml --verbose
       shell: pwsh
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: junit-report
+        path: junit-report.xml
 
   deploy:
     runs-on: windows-latest
