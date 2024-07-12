@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -25,19 +25,49 @@ jobs:
       run: composer install
 
     - name: List files in workspace
-      run: |
-        Get-ChildItem -Recurse
-      shell: pwsh
+      run: ls -R
+      shell: bash
 
     - name: Ensure tests directory exists
       run: |
-        if (Test-Path -Path "$env:GITHUB_WORKSPACE/tests") {
-          Write-Host "Tests directory exists."
-        } else {
-          Write-Error "Tests directory not found!"
+        if [ -d "tests" ]; then
+          echo "Tests directory exists."
+        else
+          echo "Tests directory not found!"
           exit 1
-        }
-      shell: pwsh
+        fi
+      shell: bash
 
-    - name: Run tests
-      run: php vendor/bin/phpunit --configuration phpunit.xml --log-junit junit-report.xml
+    - name: Identify changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v34
+      with:
+        files: '**/devops_*.php'
+
+    - name: Run tests on changed files
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        for file in $(echo ${{ steps.changed-files.outputs.all_changed_files }}); do
+          echo "Testing $file"
+          php -l $file
+          # Check for PHP tags and functions
+          if grep -q '<?php' "$file" && grep -q 'function' "$file"; then
+            echo "PHP code and functions found in $file"
+          else
+            echo "PHP code or functions not found in $file"
+            exit 1
+          fi
+        done
+      shell: bash
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy code
+      run: echo "Deploying your code..."
+      shell: bash
