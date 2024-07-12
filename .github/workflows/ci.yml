@@ -39,11 +39,11 @@ jobs:
 
     - name: Run tests on modified file
       run: |
-        TARGET_FILE=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }} | grep 'devops_.*\.php' | head -n 1)
+        TARGET_FILE=$(echo "${{ github.event.head_commit.modified }}" | grep 'devops_.*\.php' | head -n 1)
         if [ -z "$TARGET_FILE" ]; then
           echo "No devops files modified."
           exit 1
         else
           echo "Running tests on $TARGET_FILE"
-          TARGET_FILE=$TARGET_FILE php vendor/bin/phpunit --configuration phpunit.xml --filter DevOpsFileTest
+          TARGET_FILE=$TARGET_FILE php vendor/bin/phpunit --configuration phpunit.xml
         fi
