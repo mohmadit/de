@@ -3,14 +3,14 @@ name: CI/CD for Task Files
 on:
   push:
     paths:
-      - '**/devops_*.php'  # تحديد مسار ملفات المهام
+      - '**/devops_*.php'
   pull_request:
     paths:
       - '**/devops_*.php'
 
 jobs:
   build:
-    runs-on: windows-latest  # استخدام نظام التشغيل Windows
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -19,14 +19,15 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'  # تأكد من استخدام إصدار PHP المناسب
+        php-version: '8.2'
 
     - name: Install dependencies
-      run: composer install  # إذا كنت تستخدم Composer
+      run: composer install
 
     - name: Ensure tests directory exists
       run: |
-        if (Test-Path -Path "$env:GITHUB_WORKSPACE\tests") {
+        Write-Host "Checking for tests directory..."
+        if (Test-Path -Path "$env:GITHUB_WORKSPACE/tests") {
           Write-Host "Tests directory exists."
         } else {
           Write-Error "Tests directory not found!"
@@ -35,7 +36,7 @@ jobs:
       shell: pwsh
 
     - name: Run tests
-      run: php vendor\bin\phpunit --configuration phpunit.xml  # تأكد من أن لديك إعدادات PHPUnit صحيحة
+      run: php vendor\bin\phpunit --configuration phpunit.xml
 
   deploy:
     runs-on: windows-latest
@@ -46,4 +47,4 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Deploy code
-      run: echo "Deploying your code..."  # هنا تضيف أوامر النشر الخاصة بك
+      run: echo "Deploying your code..."
