@@ -38,6 +38,7 @@ jobs:
           if ($null -ne $file) {
               $fileName = $file.Name
               if ($fileName -match 'devops_add_(\d+)') {
+                  $matches[1] -match '(\d+)'
                   $taskId = $matches[1]
                   echo "::set-output name=task_id::$taskId"
               } else {
