@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # استخدم Ubuntu لتجنب مشاكل في PowerShell
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
     - name: List files in workspace
       run: |
         find . -name 'devops_*.php'
-      
+
     - name: Ensure tests directory exists
       run: |
         if [ -d "$GITHUB_WORKSPACE/tests" ]; then
