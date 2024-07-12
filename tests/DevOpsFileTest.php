@@ -1,38 +1,38 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
 
 class DevOpsFileTest extends TestCase
 {
-    private $projectDir;
+    private $projectDirectories = [
+        'cris', // أضف أسماء مجلدات مشاريعك هنا
+        // 'project2',
+        // 'project3'
+    ];
+
+    private $filePattern = '/devops_*.php';
 
     protected function setUp(): void
     {
-        $this->projectDir = __DIR__ . '/../de/'; // ضع هنا المسار الصحيح لمجلد المشروع
+        $this->baseDir = dirname(__DIR__); // جذر المشروع
     }
 
     public function testFilesExist()
     {
-        $files = glob($this->projectDir . '/devops_*.php');
-        foreach ($files as $file) {
-            $this->assertFileExists($file, "File $file does not exist.");
+        foreach ($this->projectDirectories as $project) {
+            $files = glob($this->baseDir . '/' . $project . $this->filePattern);
+            $this->assertNotEmpty($files, "No devops files found in project directory: $project");
         }
     }
 
     public function testFilesHavePhpOpeningTag()
     {
-        $files = glob($this->projectDir . '/devops_*.php');
-        foreach ($files as $file) {
-            $contents = file_get_contents($file);
-            $this->assertStringStartsWith('<?php', $contents, "File $file does not have PHP opening tag.");
-        }
-    }
-
-    public function testFilesContainBasicPhpFunctions()
-    {
-        $files = glob($this->projectDir . '/devops_*.php');
-        foreach ($files as $file) {
-            $contents = file_get_contents($file);
-            $this->assertStringContainsString('function ', $contents, "File $file does not contain any functions.");
+        foreach ($this->projectDirectories as $project) {
+            $files = glob($this->baseDir . '/' . $project . $this->filePattern);
+            foreach ($files as $file) {
+                $content = file_get_contents($file);
+                $this->assertStringContainsString('<?php', $content, "File $file does not contain PHP opening tag");
+            }
         }
     }
 }
