@@ -8,7 +8,7 @@ class DevOpsFileTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->targetFile = getenv('TARGET_FILE'); // جذر المشروع
+        $this->targetFile = getenv('TARGET_FILE');
         if (!$this->targetFile) {
             $this->markTestSkipped('No target file specified');
         }
