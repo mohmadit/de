@@ -75,6 +75,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Install lftp
+      run: sudo apt-get install lftp
+
     - name: Deploy code
-      run: echo "Deploying your code..."
+      env:
+        FTP_SERVER: "127.0.0.1"
+        FTP_USERNAME: "mohamad"
+        FTP_PASSWORD: "10200102ma!@#"
+      run: |
+        lftp -f "
+        open ftp://$FTP_USERNAME:$FTP_PASSWORD@$FTP_SERVER
+        mirror -R ${{ github.workspace }} D:/xampp/htdocs/aqdevops/results_deploy
+        bye
+        "
       shell: bash
