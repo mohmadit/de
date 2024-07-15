@@ -83,17 +83,15 @@ jobs:
         FTP_SERVER: "127.0.0.1"
         FTP_USERNAME: "mohamad"
         FTP_PASSWORD: "10200102ma!@#"
-        FTP_PORT: "14147"
+        FTP_PORT: "21"
         REMOTE_PATH: "/D:/xampp/htdocs/aqdevops/results_deploy"
       run: |
         echo "Starting FTP connection test..."
         lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
-        lcd /tmp
-        mkdir test_connection
-        cd $REMOTE_PATH
-        mkdir test_connection
+        mkdir -p $REMOTE_PATH/test_connection
+        cd $REMOTE_PATH/test_connection
         ls
-        rm -r test_connection
+        rm -r $REMOTE_PATH/test_connection
         bye
         "
         echo "FTP connection test completed."
@@ -103,7 +101,7 @@ jobs:
         FTP_SERVER: "127.0.0.1"
         FTP_USERNAME: "mohamad"
         FTP_PASSWORD: "10200102ma!@#"
-        FTP_PORT: "14147"
+        FTP_PORT: "21"
         REMOTE_PATH: "/D:/xampp/htdocs/aqdevops/results_deploy"
       run: |
         echo "Starting FTP deployment..."
