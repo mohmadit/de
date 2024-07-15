@@ -84,7 +84,7 @@ jobs:
         FTP_USERNAME: "mohamad"
         FTP_PASSWORD: "10200102ma!@#"
         FTP_PORT: "14147"
-        REMOTE_PATH: "D:\xampp\htdocs\aqdevops\results_deploy"
+        REMOTE_PATH: "/D:/xampp/htdocs/aqdevops/results_deploy"
       run: |
         echo "Starting FTP connection test..."
         lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
@@ -97,7 +97,6 @@ jobs:
         bye
         "
         echo "FTP connection test completed."
-      shell:
 
     - name: Deploy code
       env:
@@ -105,7 +104,7 @@ jobs:
         FTP_USERNAME: "mohamad"
         FTP_PASSWORD: "10200102ma!@#"
         FTP_PORT: "14147"
-        REMOTE_PATH: "/path/to/your/remote/directory"
+        REMOTE_PATH: "/D:/xampp/htdocs/aqdevops/results_deploy"
       run: |
         echo "Starting FTP deployment..."
         lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
@@ -113,4 +112,3 @@ jobs:
         bye
         "
         echo "FTP deployment completed."
-      shell: /usr/bin/bash --noprofile --norc -e -o pipefail
