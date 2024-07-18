@@ -87,13 +87,11 @@ jobs:
       env:
         LOCAL_SERVER_URL: "http://127.0.0.1/aqdevops/upload.php"
         LOCAL_PATH: "D:/xampp/htdocs/aqdevops/results_deploy"
-        TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         echo "Starting deployment to local server..."
         for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
           curl -X POST "$LOCAL_SERVER_URL" \
           -F "file=@$file" \
-          -F "path=$LOCAL_PATH" \
-          -F "token=${{ secrets.GH_TOKEN }}"
+          -F "path=$LOCAL_PATH"
         done
         echo "Deployment to local server completed."
