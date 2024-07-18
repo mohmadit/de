@@ -83,47 +83,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install lftp
-      run: sudo apt-get install -y lftp
-
-    - name: Test FTP connection
+    - name: Deploy code to local server
       env:
-        FTP_SERVER: "127.0.0.1"
-        FTP_USERNAME: "mo"
-        FTP_PASSWORD: ""
-        FTP_PORT: "14147"
-        REMOTE_PATH: "/xampp/htdocs/aqdevops/results_deploy"
+        LOCAL_SERVER_URL: "http://127.0.0.1/aqdevops/upload.php"
+        LOCAL_PATH: "D:/xampp/htdocs/aqdevops/results_deploy"
+        TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        echo "Starting FTP connection test..."
-        lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
-        mkdir -p $REMOTE_PATH/test_connection
-        cd $REMOTE_PATH/test_connection
-        ls
-        rm -r $REMOTE_PATH/test_connection
-        bye
-        "
-        echo "FTP connection test completed."
-
-    - name: Deploy code
-      env:
-        FTP_SERVER: "127.0.0.1"
-        FTP_USERNAME: "mo"
-        FTP_PASSWORD: ""
-        FTP_PORT: "14147"
-        REMOTE_PATH: "/xampp/htdocs/aqdevops/results_deploy"
-      run: |
-        echo "Starting FTP deployment..."
-        lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
-        mirror -R $GITHUB_WORKSPACE $REMOTE_PATH
-        bye
-        "
-        echo "FTP deployment completed."
-
-    - name: Update Documentation
-      run: |
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
-        git checkout main
-        git add docs/
-        git commit -m "Update documentation"
-        git push origin main
+        echo "Starting deployment to local server..."
+        for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
+          curl -X POST "$LOCAL_SERVER_URL" \
+          -F "file=@$file" \
+          -F "path=$LOCAL_PATH" \
+          -F "token=${{ secrets.GH_TOKEN }}"
+        done
+        echo "Deployment to local server completed."
