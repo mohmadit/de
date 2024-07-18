@@ -35,7 +35,6 @@ jobs:
         else
           echo "Tests directory not found!"
           exit 1
-        fi
       shell: bash
 
     - name: Identify changed files
@@ -89,10 +88,10 @@ jobs:
     - name: Test FTP connection
       env:
         FTP_SERVER: "127.0.0.1"
-        FTP_USERNAME: "mohamad"
-        FTP_PASSWORD: "10200102ma!@#"
-        FTP_PORT: "21"
-        REMOTE_PATH: "/D:/xampp/htdocs/aqdevops/results_deploy"
+        FTP_USERNAME: "mo"
+        FTP_PASSWORD: ""
+        FTP_PORT: "14147"
+        REMOTE_PATH: "/xampp/htdocs/aqdevops/results_deploy"
       run: |
         echo "Starting FTP connection test..."
         lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
@@ -107,10 +106,10 @@ jobs:
     - name: Deploy code
       env:
         FTP_SERVER: "127.0.0.1"
-        FTP_USERNAME: "mohamad"
-        FTP_PASSWORD: "10200102ma!@#"
-        FTP_PORT: "21"
-        REMOTE_PATH: "/D:/xampp/htdocs/aqdevops/results_deploy"
+        FTP_USERNAME: "mo"
+        FTP_PASSWORD: ""
+        FTP_PORT: "14147"
+        REMOTE_PATH: "/xampp/htdocs/aqdevops/results_deploy"
       run: |
         echo "Starting FTP deployment..."
         lftp -u $FTP_USERNAME,$FTP_PASSWORD -p $FTP_PORT $FTP_SERVER -e "
