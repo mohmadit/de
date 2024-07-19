@@ -68,7 +68,20 @@ jobs:
     - name: Build Project
       run: |
         echo "Building the project..."
+        # أضف هنا أي أوامر بناء تحتاجها لمشروعك
       shell: bash
+
+    - name: Archive Results
+      run: |
+        mkdir -p D:/xampp/htdocs/aqdevops/results_deploy
+        cp -r D:/xampp/htdocs/aqdevops/tests/* D:/xampp/htdocs/aqdevops/results_deploy/
+        tar -czf results_deploy.tar.gz -C D:/xampp/htdocs/aqdevops/results_deploy .
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: D:/xampp/htdocs/aqdevops/results_deploy/results_deploy.tar.gz
 
   deploy:
     runs-on: ubuntu-latest
@@ -78,11 +91,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Deploy code to local server
+    - name: Download Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: test-results
+        path: ./results
+
+    - name: Extract Artifacts
+      run: tar -xzf results/results_deploy.tar.gz -C results
+
+    - name: Deploy to local FTP server
+      uses: sebastianpopp/ftp-action@v1.3.0
+      with:
+        host: 127.0.0.1
+        port: 14147
+        username: user
+        password: ""
+        localDir: results
+        remoteDir: 'D:/xampp/htdocs/aqdevops/results_deploy'
+
+    - name: Deploy PHP files to local server
       env:
         LOCAL_SERVER_URL: "http://127.0.0.1/aqdevops/upload.php"
-        LOCAL_PATH: "D:/xampp/htdocs/aqdevops/results_deploy"
-        DEPLOY_TOKEN: "your_secret_token" # ضع التوكن هنا
+        DEPLOY_TOKEN: "" # ترك التوكن فارغًا لأنك لا تحتاج إليه
       run: |
         echo "Starting deployment to local server..."
         for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
