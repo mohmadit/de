@@ -106,9 +106,9 @@ jobs:
       with:
         server: "ftp://127.0.0.1"
         username: "user"
-        password: ""
+        password: "12345"  # كلمة المرور الخاصة بك
         local-dir: "./results"
-        server-dir: "D:/xampp/htdocs/aqdevops/results_deploy/"  # مسار الدليل على خادم FTP
+        server-dir: "D:/xampp/htdocs/aqdevops/results_deploy/"
 
     - name: Deploy PHP files to local server
       env:
