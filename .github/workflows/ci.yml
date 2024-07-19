@@ -108,7 +108,7 @@ jobs:
         username: "user"
         password: ""
         local-dir: "./results"
-        server-dir: "/path/to/ftp/directory" # مسار الدليل على خادم FTP
+        server-dir: "D:/xampp/htdocs/aqdevops/results_deploy/"  # مسار الدليل على خادم FTP
 
     - name: Deploy PHP files to local server
       env:
