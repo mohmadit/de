@@ -71,17 +71,21 @@ jobs:
         # أضف هنا أي أوامر بناء تحتاجها لمشروعك
       shell: bash
 
-    - name: Archive Results
+    - name: Copy test results to deploy directory
       run: |
         mkdir -p D:/xampp/htdocs/aqdevops/results_deploy
-        cp -r D:/xampp/htdocs/aqdevops/tests/* D:/xampp/htdocs/aqdevops/results_deploy/
-        tar -czf results_deploy.tar.gz -C D:/xampp/htdocs/aqdevops/results_deploy .
+        if [ -d "tests" ]; then
+          cp -r tests/* D:/xampp/htdocs/aqdevops/results_deploy/
+        else
+          echo "Tests directory not found!"
+          exit 1
+        fi
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: test-results
-        path: D:/xampp/htdocs/aqdevops/results_deploy/results_deploy.tar.gz
+        path: D:/xampp/htdocs/aqdevops/results_deploy/
 
   deploy:
     runs-on: ubuntu-latest
@@ -96,9 +100,6 @@ jobs:
       with:
         name: test-results
         path: ./results
-
-    - name: Extract Artifacts
-      run: tar -xzf results/results_deploy.tar.gz -C results
 
     - name: Deploy to local FTP server
       uses: sebastianpopp/ftp-action@v1.3.0
