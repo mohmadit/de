@@ -69,7 +69,10 @@ jobs:
 
     - name: Build Project
       run: |
+        # Add your build commands here
         echo "Building the project..."
+        # Example: mvn clean install (for Maven projects)
+        # Example: npm install && npm run build (for Node.js projects)
       shell: bash
 
   deploy:
