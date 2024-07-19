@@ -50,7 +50,6 @@ jobs:
         for file in $(echo ${{ steps.changed-files.outputs.all_changed_files }}); do
           echo "Testing $file"
           php -l $file
-          # Check for PHP tags
           if grep -q '<?php' "$file" && grep -q '?>' "$file"; then
             echo "PHP opening and closing tags found in $file"
           else
@@ -58,7 +57,6 @@ jobs:
             exit 1
           fi
 
-          # Optional check for PHP functions
           if grep -q 'function' "$file"; then
             echo "PHP functions found in $file"
           else
@@ -84,11 +82,13 @@ jobs:
       env:
         LOCAL_SERVER_URL: "http://127.0.0.1/aqdevops/upload.php"
         LOCAL_PATH: "D:/xampp/htdocs/aqdevops/results_deploy"
+        DEPLOY_TOKEN: "your_secret_token" # ضع التوكن هنا
       run: |
         echo "Starting deployment to local server..."
         for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
           response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$LOCAL_SERVER_URL" \
-          -F "file=@$file")
+          -F "file=@$file" \
+          -F "token=$DEPLOY_TOKEN")
           if [ $response -eq 200 ]; then
             echo "File $file uploaded successfully."
           else
