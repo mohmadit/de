@@ -108,6 +108,8 @@ jobs:
         port: 14147
         username: "user"
         password: "12345"  # كلمة المرور الخاصة بك
+        protocol: ftps
+
         local-dir: "./results/"
         server-dir: "D:/xampp/htdocs/aqdevops/results_deploy/"
 
