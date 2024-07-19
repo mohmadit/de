@@ -35,7 +35,6 @@ jobs:
         else
           echo "Tests directory not found!"
           exit 1
-        fi
       shell: bash
 
     - name: Identify changed files
@@ -73,19 +72,19 @@ jobs:
 
     - name: Copy test results to deploy directory
       run: |
-        mkdir -p D:/xampp/htdocs/aqdevops/results_deploy
+        mkdir -p results_deploy
         if [ -d "tests" ]; then
-          cp -r tests/* D:/xampp/htdocs/aqdevops/results_deploy/
+          cp -r tests/* results_deploy/
         else
           echo "Tests directory not found!"
           exit 1
-        fi
+      shell: bash
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: test-results
-        path: D:/xampp/htdocs/aqdevops/results_deploy/
+        path: results_deploy/
 
   deploy:
     runs-on: ubuntu-latest
@@ -99,34 +98,15 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: test-results
-        path: ./results/
+        path: ./results
 
-    - name: Deploy to local FTP server
-      uses: SamKirkland/FTP-Deploy-Action@4.3.0
-      with:
-        server: "127.0.0.1"
-        port: 14147
-        username: "user"
-        password: "12345"  # كلمة المرور الخاصة بك
-        protocol: ftps
-
-        local-dir: "./results/"
-        server-dir: "D:/xampp/htdocs/aqdevops/results_deploy/"
-
-    - name: Deploy PHP files to local server
+    - name: Deploy to local server using SCP
       env:
-        LOCAL_SERVER_URL: "http://127.0.0.1/aqdevops/upload.php"
-        DEPLOY_TOKEN: "" # ترك التوكن فارغًا لأنك لا تحتاج إليه
+        SCP_USER: "acer"
+        SCP_HOST: "127.0.0.1"
+        SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
       run: |
         echo "Starting deployment to local server..."
-        for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
-          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$LOCAL_SERVER_URL" \
-          -F "file=@$file" \
-          -F "token=$DEPLOY_TOKEN")
-          if [ $response -eq 200 ]; then
-            echo "File $file uploaded successfully."
-          else
-            echo "Failed to upload file $file. HTTP response code: $response"
-          fi
-        done
+        scp -P 22 -i C:/Users/acer/.ssh/id_rsa ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
         echo "Deployment to local server completed."
+      shell: bash
