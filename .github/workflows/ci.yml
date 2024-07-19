@@ -69,10 +69,7 @@ jobs:
 
     - name: Build Project
       run: |
-        # Add your build commands here
         echo "Building the project..."
-        # Example: mvn clean install (for Maven projects)
-        # Example: npm install && npm run build (for Node.js projects)
       shell: bash
 
   deploy:
@@ -90,8 +87,12 @@ jobs:
       run: |
         echo "Starting deployment to local server..."
         for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
-          curl -X POST "$LOCAL_SERVER_URL" \
-          -F "file=@$file" \
-          -F "path=$LOCAL_PATH"
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$LOCAL_SERVER_URL" \
+          -F "file=@$file")
+          if [ $response -eq 200 ]; then
+            echo "File $file uploaded successfully."
+          else
+            echo "Failed to upload file $file. HTTP response code: $response"
+          fi
         done
         echo "Deployment to local server completed."
