@@ -90,8 +90,9 @@ jobs:
       run: |
         echo "Starting deployment to local server..."
         for file in $(git diff --name-only HEAD^ HEAD | grep 'devops_*.php'); do
-          curl -X POST "$LOCAL_SERVER_URL" \
-          -F "file=@$file" \
-          -F "path=$LOCAL_PATH"
+          response=$(curl -s -X POST "$LOCAL_SERVER_URL" \
+            -F "file=@$file" \
+            -F "path=$LOCAL_PATH")
+          echo "Response from server: $response"
         done
         echo "Deployment to local server completed."
