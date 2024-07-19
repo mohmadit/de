@@ -35,6 +35,7 @@ jobs:
         else
           echo "Tests directory not found!"
           exit 1
+        fi
       shell: bash
 
     - name: Identify changed files
@@ -67,7 +68,7 @@ jobs:
     - name: Build Project
       run: |
         echo "Building the project..."
-        # أضف هنا أي أوامر بناء تحتاجها لمشروعك
+        # Add any build commands you need for your project here
       shell: bash
 
     - name: Copy test results to deploy directory
@@ -78,6 +79,7 @@ jobs:
         else
           echo "Tests directory not found!"
           exit 1
+        fi
       shell: bash
 
     - name: Upload Artifacts
