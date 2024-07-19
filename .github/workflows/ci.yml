@@ -104,7 +104,7 @@ jobs:
     - name: Deploy to local FTP server
       uses: SamKirkland/FTP-Deploy-Action@4.3.0
       with:
-        server: "ftp://127.0.0.1"
+        server: "127.0.0.1"
         username: "user"
         password: "12345"  # كلمة المرور الخاصة بك
         local-dir: "./results/"
