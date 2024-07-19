@@ -107,6 +107,6 @@ jobs:
         SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
       run: |
         echo "Starting deployment to local server..."
-        scp -P 22 -i C:/Users/acer/.ssh/id_rsa ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
+        scp -P 22 -i C:/Users/acer/.ssh/id_rsa_new ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
         echo "Deployment to local server completed."
       shell: bash
