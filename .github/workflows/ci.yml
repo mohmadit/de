@@ -99,7 +99,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: test-results
-        path: ./results
+        path: ./results/
 
     - name: Deploy to local FTP server
       uses: SamKirkland/FTP-Deploy-Action@4.3.0
@@ -107,7 +107,7 @@ jobs:
         server: "ftp://127.0.0.1"
         username: "user"
         password: "12345"  # كلمة المرور الخاصة بك
-        local-dir: "./results"
+        local-dir: "./results/"
         server-dir: "D:/xampp/htdocs/aqdevops/results_deploy/"
 
     - name: Deploy PHP files to local server
