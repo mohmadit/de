@@ -102,11 +102,11 @@ jobs:
         path: ./results
 
     - name: Deploy to local FTP server
-      uses: lukka/ftp-upload-action@v3
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
       with:
-        ftp-server-url: "ftp://127.0.0.1:14147"
-        ftp-username: "user"
-        ftp-password: "" # إذا كانت كلمة المرور مطلوبة، قم بإدخالها هنا
+        server: "ftp://127.0.0.1"
+        username: "user"
+        password: "" # إذا كانت كلمة المرور مطلوبة، قم بإدخالها هنا
         remote-dir: "D:/xampp/htdocs/aqdevops/results_deploy"
         local-dir: "./results"
 
