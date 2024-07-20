@@ -103,8 +103,8 @@ jobs:
           mkdir -Force -Path $env:USERPROFILE\.ssh
           Set-Content -Path $env:USERPROFILE\.ssh\id_rsa -Value "${{ secrets.SSH_PRIVATE_KEY }}" -NoNewline
           icacls $env:USERPROFILE\.ssh\id_rsa /inheritance:r
-          icacls $env:USERPROFILE\.ssh\id_rsa /grant:r "$($env:USERNAME):(F)"
-          ssh-keyscan -H 127.0.0.1 | Out-File -Append -FilePath $env:USERPROFILE\.ssh\known_hosts
+          icacls $env:USERPROFILE\.ssh\id_rsa /grant:r "$($env:USERNAME):F"
+          ssh-keyscan -H $env:SCP_HOST | Out-File -Append -FilePath $env:USERPROFILE\.ssh\known_hosts
         env:
           SCP_HOST: "127.0.0.1"
 
