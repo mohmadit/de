@@ -115,9 +115,9 @@ jobs:
         env:
           SCP_USER: "acer"
           SCP_HOST: "127.0.0.1"
-          SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
+          SCP_PATH: "/mnt/d/xampp/htdocs/aqdevops/results_deploy/"
         run: |
           echo "Starting deployment to local server..."
-          scp -P 22 -i ~/.ssh/id_rsa ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
+          scp -P 22 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
           echo "Deployment to local server completed."
         shell: bash
