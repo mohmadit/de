@@ -26,17 +26,15 @@ jobs:
 
       - name: List files in workspace
         run: Get-ChildItem -Recurse
-        shell: pwsh
 
       - name: Ensure tests directory exists
         run: |
-          if (Test-Path "tests") {
-            Write-Host "Tests directory exists."
+          if (Test-Path -Path "tests") {
+            Write-Output "Tests directory exists."
           } else {
-            Write-Host "Tests directory not found!"
+            Write-Output "Tests directory not found!"
             exit 1
           }
-        shell: pwsh
 
       - name: Identify changed files
         id: changed-files
@@ -47,41 +45,38 @@ jobs:
       - name: Run tests on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          $changedFiles = '${{ steps.changed-files.outputs.all_changed_files }}'.Split("`n")
+          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
           foreach ($file in $changedFiles) {
-            Write-Host "Testing $file"
+            Write-Output "Testing $file"
             php -l $file
-            if (Select-String -Path $file -Pattern '<?php' -Quiet) {
-              Write-Host "PHP opening tag found in $file"
+            if ((Get-Content $file) -match '<\?php' -and (Get-Content $file) -match '\?>') {
+              Write-Output "PHP opening and closing tags found in $file"
             } else {
-              Write-Host "PHP opening tag not found in $file"
+              Write-Output "PHP opening or closing tag not found in $file"
               exit 1
             }
 
-            if (Select-String -Path $file -Pattern 'function' -Quiet) {
-              Write-Host "PHP functions found in $file"
+            if ((Get-Content $file) -match 'function') {
+              Write-Output "PHP functions found in $file"
             } else {
-              Write-Host "No PHP functions found in $file, but continuing..."
+              Write-Output "No PHP functions found in $file, but continuing..."
             }
           }
-        shell: pwsh
 
       - name: Build Project
-        run: |
-          Write-Host "Building the project..."
-          # Add any build commands you need for your project here
-        shell: pwsh
+        run: Write-Output "Building the project..."
 
       - name: Copy test results to deploy directory
         run: |
-          New-Item -ItemType Directory -Path results_deploy -Force
-          if (Test-Path "tests") {
-            Copy-Item -Path tests/* -Destination results_deploy/ -Recurse
+          if (-Not (Test-Path -Path "results_deploy")) {
+            New-Item -ItemType Directory -Path "results_deploy"
+          }
+          if (Test-Path -Path "tests") {
+            Copy-Item -Path "tests/*" -Destination "results_deploy/"
           } else {
-            Write-Host "Tests directory not found!"
+            Write-Output "Tests directory not found!"
             exit 1
           }
-        shell: pwsh
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -108,19 +103,17 @@ jobs:
           mkdir -Force -Path $env:USERPROFILE\.ssh
           Set-Content -Path $env:USERPROFILE\.ssh\id_rsa -Value "${{ secrets.SSH_PRIVATE_KEY }}" -NoNewline
           icacls $env:USERPROFILE\.ssh\id_rsa /inheritance:r
-          icacls $env:USERPROFILE\.ssh\id_rsa /grant:r $($env:USERNAME):(R)
+          icacls $env:USERPROFILE\.ssh\id_rsa /grant:r $($env:USERNAME):(F)
           ssh-keyscan -H ${{ env.SCP_HOST }} | Out-File -Append -FilePath $env:USERPROFILE\.ssh\known_hosts
-        shell: pwsh
         env:
           SCP_HOST: "127.0.0.1"
 
       - name: Deploy to local server using SCP
         run: |
-          Write-Host "Starting deployment to local server..."
-          scp -P 22 -i $env:USERPROFILE\.ssh\id_rsa -o StrictHostKeyChecking=no ./results/* $env:SCP_USER@$env:SCP_HOST:$env:SCP_PATH
-          Write-Host "Deployment to local server completed."
-        shell: pwsh
+          echo "Starting deployment to local server..."
+          scp -o StrictHostKeyChecking=no -i $env:USERPROFILE\.ssh\id_rsa ./results/* $env:SCP_USER@$env:SCP_HOST:$env:SCP_PATH
+          echo "Deployment to local server completed."
         env:
           SCP_USER: "acer"
           SCP_HOST: "127.0.0.1"
-          SCP_PATH: "/mnt/d/xampp/htdocs/aqdevops/results_deploy/"
+          SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
