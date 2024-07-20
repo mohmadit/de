@@ -13,111 +13,111 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
 
-    - name: Install dependencies
-      run: composer install
+      - name: Install dependencies
+        run: composer install
 
-    - name: List files in workspace
-      run: ls -R
-      shell: bash
+      - name: List files in workspace
+        run: ls -R
+        shell: bash
 
-    - name: Ensure tests directory exists
-      run: |
-        if [ -d "tests" ]; then
-          echo "Tests directory exists."
-        else
-          echo "Tests directory not found!"
-          exit 1
-        fi
-      shell: bash
-
-    - name: Identify changed files
-      id: changed-files
-      uses: tj-actions/changed-files@v34
-      with:
-        files: '**/devops_*.php'
-
-    - name: Run tests on changed files
-      if: steps.changed-files.outputs.any_changed == 'true'
-      run: |
-        for file in $(echo ${{ steps.changed-files.outputs.all_changed_files }}); do
-          echo "Testing $file"
-          php -l $file
-          if grep -q '<?php' "$file" && grep -q '?>' "$file"; then
-            echo "PHP opening and closing tags found in $file"
+      - name: Ensure tests directory exists
+        run: |
+          if [ -d "tests" ]; then
+            echo "Tests directory exists."
           else
-            echo "PHP opening or closing tag not found in $file"
+            echo "Tests directory not found!"
             exit 1
           fi
+        shell: bash
 
-          if grep -q 'function' "$file"; then
-            echo "PHP functions found in $file"
+      - name: Identify changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v34
+        with:
+          files: '**/devops_*.php'
+
+      - name: Run tests on changed files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          for file in $(echo ${{ steps.changed-files.outputs.all_changed_files }}); do
+            echo "Testing $file"
+            php -l $file
+            if grep -q '<?php' "$file" && grep -q '?>' "$file"; then
+              echo "PHP opening and closing tags found in $file"
+            else
+              echo "PHP opening or closing tag not found in $file"
+              exit 1
+            fi
+
+            if grep -q 'function' "$file"; then
+              echo "PHP functions found in $file"
+            else
+              echo "No PHP functions found in $file, but continuing..."
+            fi
+          done
+        shell: bash
+
+      - name: Build Project
+        run: |
+          echo "Building the project..."
+          # Add any build commands you need for your project here
+        shell: bash
+
+      - name: Copy test results to deploy directory
+        run: |
+          mkdir -p results_deploy
+          if [ -d "tests" ]; then
+            cp -r tests/* results_deploy/
           else
-            echo "No PHP functions found in $file, but continuing..."
+            echo "Tests directory not found!"
+            exit 1
           fi
-        done
-      shell: bash
+        shell: bash
 
-    - name: Build Project
-      run: |
-        echo "Building the project..."
-        # Add any build commands you need for your project here
-      shell: bash
-
-    - name: Copy test results to deploy directory
-      run: |
-        mkdir -p results_deploy
-        if [ -d "tests" ]; then
-          cp -r tests/* results_deploy/
-        else
-          echo "Tests directory not found!"
-          exit 1
-        fi
-      shell: bash
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: test-results
-        path: results_deploy/
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: results_deploy/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Download Artifacts
-      uses: actions/download-artifact@v2
-      with:
-        name: test-results
-        path: ./results
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: test-results
+          path: ./results
 
-    - name: Setup SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.My }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $SCP_HOST >> ~/.ssh/known_hosts
-      env:
-        SCP_HOST: "127.0.0.1"
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.SCP_HOST }} >> ~/.ssh/known_hosts
+        env:
+          SCP_HOST: "127.0.0.1"
 
-    - name: Deploy to local server using SCP
-      env:
-        SCP_USER: "acer"
-        SCP_HOST: "127.0.0.1"
-        SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
-      run: |
-        echo "Starting deployment to local server..."
-        scp -P 22 -i ~/.ssh/id_rsa ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
-        echo "Deployment to local server completed."
-      shell: bash
+      - name: Deploy to local server using SCP
+        env:
+          SCP_USER: "acer"
+          SCP_HOST: "127.0.0.1"
+          SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
+        run: |
+          echo "Starting deployment to local server..."
+          scp -P 22 -i ~/.ssh/id_rsa ./results/* $SCP_USER@$SCP_HOST:$SCP_PATH
+          echo "Deployment to local server completed."
+        shell: bash
