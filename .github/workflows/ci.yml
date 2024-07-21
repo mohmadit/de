@@ -56,18 +56,15 @@ jobs:
           name: test-results
           path: ./results
 
-      - name: Upload file to local server
+      - name: Upload files to local server
         run: |
-          $filePath = "./results/DevOpsFileTest.php"
-          Write-Output "Uploading $filePath"
-          $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php -v
-          Write-Output "cURL response: $response"
-          # Extract download link from response
-          $responseContent = $response | Out-String
-          $jsonResponse = $responseContent | ConvertFrom-Json
-          if ($jsonResponse.status -eq 'success') {
-              Write-Output "Download link: $($jsonResponse.download_link)"
-          } else {
-              Write-Output "Error: $($jsonResponse.message)"
+          $files = Get-ChildItem -Path "./results"
+          foreach ($file in $files) {
+            $filePath = $file.FullName
+            Write-Output "Uploading $filePath"
+            $response = curl -X POST -H "Authorization: Bearer $env:UPLOAD_TOKEN" -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php -v
+            Write-Output "cURL response: $response"
           }
         shell: pwsh
+        env:
+          UPLOAD_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
