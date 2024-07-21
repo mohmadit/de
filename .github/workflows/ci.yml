@@ -76,11 +76,21 @@ jobs:
         run: |
           $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
           foreach ($file in $changedFiles) {
-            $filePath = Resolve-Path -Path $file
-            Write-Output "Resolved file path: $filePath"
-            $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + [System.IO.Path]::GetFileName($filePath)
-            Copy-Item -Path $filePath -Destination $destination
-            Write-Output "Uploaded $filePath to $destination"
+            if (Test-Path -Path $file) {
+              $filePath = Resolve-Path -Path $file
+              Write-Output "Resolved file path: $filePath"
+              $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + [System.IO.Path]::GetFileName($filePath)
+              Write-Output "Copying $filePath to $destination"
+              Copy-Item -Path $filePath -Destination $destination -Force
+              if (Test-Path -Path $destination) {
+                Write-Output "Successfully copied $filePath to $destination"
+              } else {
+                Write-Output "Failed to copy $filePath to $destination"
+              }
+            } else {
+              Write-Output "File $file does not exist"
+              exit 1
+            }
           }
 
       - name: Verify files on local server
