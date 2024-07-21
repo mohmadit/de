@@ -111,7 +111,7 @@ jobs:
       - name: Deploy to local server using SCP
         run: |
           echo "Starting deployment to local server..."
-          scp -o StrictHostKeyChecking=no -i $env:USERPROFILE\.ssh\id_rsa ./results/* "$env:SCP_USER@$env:SCP_HOST:$env:SCP_PATH"
+          scp -o StrictHostKeyChecking=no -i $env:USERPROFILE\.ssh\id_rsa ./results/* "$env:SCP_USER@$env:SCP_HOST:`"$env:SCP_PATH`""
           echo "Deployment to local server completed."
         shell: pwsh
         env:
