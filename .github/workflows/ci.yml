@@ -98,12 +98,17 @@ jobs:
           name: test-results
           path: ./results
 
+      - name: Create destination directory on local server
+        run: |
+          if (-Not (Test-Path -Path "D:/xampp/htdocs/aqdevops/results_deploy")) {
+            New-Item -ItemType Directory -Path "D:/xampp/htdocs/aqdevops/results_deploy"
+          }
+
       - name: Upload files to local server
         run: |
           $files = Get-ChildItem -Path "./results"
           foreach ($file in $files) {
-            $filePath = $file.FullName
-            Write-Output "Uploading $filePath"
-            $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php
-            Write-Output "Response from server: $response"
+            $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + $file.Name
+            Copy-Item -Path $file.FullName -Destination $destination
+            Write-Output "Uploaded $file.FullName to $destination"
           }
