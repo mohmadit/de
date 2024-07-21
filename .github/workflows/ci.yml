@@ -118,4 +118,4 @@ jobs:
         env:
           SCP_USER: acer
           SCP_HOST: 127.0.0.1
-          SCP_PATH: D:\xampp\htdocs\aqdevops\results_deploy\
+          SCP_PATH: D:/xampp/htdocs/aqdevops/results_deploy/
