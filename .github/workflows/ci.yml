@@ -98,24 +98,11 @@ jobs:
           name: test-results
           path: ./results
 
-      - name: Setup SSH
+      - name: Upload files to local server
         run: |
-          mkdir -Force -Path $env:USERPROFILE\.ssh
-          Set-Content -Path $env:USERPROFILE\.ssh\id_rsa -Value "${{ secrets.SSH_PRIVATE_KEY }}" -NoNewline
-          icacls $env:USERPROFILE\.ssh\id_rsa /inheritance:r
-          icacls $env:USERPROFILE\.ssh\id_rsa /grant:r "$($env:USERNAME):F"
-          ssh-keyscan -H 127.0.0.1 | Out-File -Append -FilePath $env:USERPROFILE\.ssh\known_hosts
-      env:
-        SCP_HOST: "127.0.0.1"
-
-      - name: Deploy to local server using SCP
-        run: |
-          echo "Starting deployment to local server..."
-          $scpCommand = "scp -o StrictHostKeyChecking=no -i $env:USERPROFILE\.ssh\id_rsa ./results/* $env:SCP_USER@$env:SCP_HOST:`"$env:SCP_PATH`""
-          Invoke-Expression $scpCommand
-          echo "Deployment to local server completed."
-        shell: pwsh
-        env:
-          SCP_USER: acer
-          SCP_HOST: 127.0.0.1
-          SCP_PATH: "D:/xampp/htdocs/aqdevops/results_deploy/"
+          $files = Get-ChildItem -Path "./results"
+          foreach ($file in $files) {
+            $filePath = $file.FullName
+            Write-Output "Uploading $filePath"
+            curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php
+          }
