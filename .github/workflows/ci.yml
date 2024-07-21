@@ -24,23 +24,15 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: Copy test results to deploy directory
+      - name: Create ZIP file
         run: |
-          if (-Not (Test-Path -Path "results_deploy")) {
-            New-Item -ItemType Directory -Path "results_deploy"
-          }
-          if (Test-Path -Path "tests") {
-            Copy-Item -Path "tests/*" -Destination "results_deploy/"
-          } else {
-            Write-Output "Tests directory not found!"
-            exit 1
-          }
+          Compress-Archive -Path tests/* -DestinationPath results_deploy/results.zip
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: test-results
-          path: results_deploy/
+          path: results_deploy/results.zip
 
   deploy:
     runs-on: windows-latest
@@ -56,13 +48,10 @@ jobs:
           name: test-results
           path: ./results
 
-      - name: Upload files to local server
+      - name: Upload ZIP file to local server
         run: |
-          $files = Get-ChildItem -Path "./results"
-          foreach ($file in $files) {
-            $filePath = $file.FullName
-            Write-Output "Uploading $filePath"
-            $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php -v
-            Write-Output "cURL response: $response"
-          }
+          $zipPath = "./results/results.zip"
+          Write-Output "Uploading $zipPath"
+          $response = curl -X POST -F "file=@$zipPath" http://127.0.0.1/aqdevops/upload.php -v
+          Write-Output "cURL response: $response"
         shell: pwsh
