@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -25,16 +25,16 @@ jobs:
         run: composer install
 
       - name: List files in workspace
-        run: Get-ChildItem -Recurse
+        run: ls -R
 
       - name: Ensure tests directory exists
         run: |
-          if (Test-Path -Path "tests") {
-            Write-Output "Tests directory exists."
-          } else {
-            Write-Output "Tests directory not found!"
+          if [ -d "tests" ]; then
+            echo "Tests directory exists."
+          else
+            echo "Tests directory not found!"
             exit 1
-          }
+          fi
 
       - name: Identify changed files
         id: changed-files
@@ -45,64 +45,41 @@ jobs:
       - name: Run tests on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
-          foreach ($file in $changedFiles) {
-            Write-Output "Testing $file"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Testing $file"
             php -l $file
-            if ((Get-Content $file) -match '<\?php' -and (Get-Content $file) -match '\?>') {
-              Write-Output "PHP opening and closing tags found in $file"
-            } else {
-              Write-Output "PHP opening or closing tag not found in $file"
+            if grep -q "<?php" $file && grep -q "?>" $file; then
+              echo "PHP opening and closing tags found in $file"
+            else
+              echo "PHP opening or closing tag not found in $file"
               exit 1
-            }
+            fi
 
-            if ((Get-Content $file) -match 'function') {
-              Write-Output "PHP functions found in $file"
-            } else {
-              Write-Output "No PHP functions found in $file, but continuing..."
-            }
-          }
+            if grep -q "function" $file; then
+              echo "PHP functions found in $file"
+            else
+              echo "No PHP functions found in $file, but continuing..."
+            fi
+          done
 
       - name: Build Project
-        run: Write-Output "Building the project..."
+        run: echo "Building the project..."
 
       - name: Copy test results to deploy directory
         run: |
-          if (-Not (Test-Path -Path "results_deploy")) {
-            New-Item -ItemType Directory -Path "results_deploy"
-          }
-          if (Test-Path -Path "tests") {
-            Copy-Item -Path "tests/*" -Destination "results_deploy/"
-          } else {
-            Write-Output "Tests directory not found!"
+          mkdir -p results_deploy
+          if [ -d "tests" ]; then
+            cp -r tests/* results_deploy/
+          else
+            echo "Tests directory not found!"
             exit 1
-          }
+          fi
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: results_deploy/
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
 
-  deploy:
-    runs-on: windows-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: test-results
-          path: ./results
-
-      - name: Upload files to local server
-        run: |
-          $files = Get-ChildItem -Path "./results"
-          foreach ($file in $files) {
-            $filePath = $file.FullName
-            Write-Output "Uploading $filePath"
-            curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php
-          }
+      - name: Deploy to Netlify
+        run: netlify deploy --prod --dir=results_deploy --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
