@@ -66,4 +66,3 @@ jobs:
             Write-Output "cURL response: $response"
           }
         shell: pwsh
-
