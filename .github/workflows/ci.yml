@@ -98,6 +98,22 @@ jobs:
           name: test-results
           path: ./results
 
+      - name: Verify files exist in results directory
+        run: |
+          if (-Not (Test-Path -Path "./results")) {
+            Write-Output "Results directory not found!"
+            exit 1
+          }
+          $files = Get-ChildItem -Path "./results"
+          if ($files.Count -eq 0) {
+            Write-Output "No files found in results directory!"
+            exit 1
+          }
+          Write-Output "Files found in results directory:"
+          foreach ($file in $files) {
+            Write-Output $file.FullName
+          }
+
       - name: Upload files to local server
         run: |
           $files = Get-ChildItem -Path "./results"
