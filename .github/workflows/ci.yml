@@ -76,9 +76,11 @@ jobs:
         run: |
           $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
           foreach ($file in $changedFiles) {
-            $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + [System.IO.Path]::GetFileName($file)
-            Copy-Item -Path $file -Destination $destination
-            Write-Output "Uploaded $file to $destination"
+            $filePath = Resolve-Path -Path $file
+            Write-Output "Resolved file path: $filePath"
+            $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + [System.IO.Path]::GetFileName($filePath)
+            Copy-Item -Path $filePath -Destination $destination
+            Write-Output "Uploaded $filePath to $destination"
           }
 
       - name: Verify files on local server
