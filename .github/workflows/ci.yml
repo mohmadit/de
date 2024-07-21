@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
@@ -25,16 +25,16 @@ jobs:
         run: composer install
 
       - name: List files in workspace
-        run: ls -R
+        run: Get-ChildItem -Recurse
 
       - name: Ensure tests directory exists
         run: |
-          if [ -d "tests" ]; then
-            echo "Tests directory exists."
-          else
-            echo "Tests directory not found!"
+          if (Test-Path -Path "tests") {
+            Write-Output "Tests directory exists."
+          } else {
+            Write-Output "Tests directory not found!"
             exit 1
-          fi
+          }
 
       - name: Identify changed files
         id: changed-files
@@ -45,41 +45,64 @@ jobs:
       - name: Run tests on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "Testing $file"
+          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
+          foreach ($file in $changedFiles) {
+            Write-Output "Testing $file"
             php -l $file
-            if grep -q "<?php" $file && grep -q "?>" $file; then
-              echo "PHP opening and closing tags found in $file"
-            else
-              echo "PHP opening or closing tag not found in $file"
+            if ((Get-Content $file) -match '<\?php' -and (Get-Content $file) -match '\?>') {
+              Write-Output "PHP opening and closing tags found in $file"
+            } else {
+              Write-Output "PHP opening or closing tag not found in $file"
               exit 1
-            fi
+            }
 
-            if grep -q "function" $file; then
-              echo "PHP functions found in $file"
-            else
-              echo "No PHP functions found in $file, but continuing..."
-            fi
-          done
+            if ((Get-Content $file) -match 'function') {
+              Write-Output "PHP functions found in $file"
+            } else {
+              Write-Output "No PHP functions found in $file, but continuing..."
+            }
+          }
 
       - name: Build Project
-        run: echo "Building the project..."
+        run: Write-Output "Building the project..."
 
       - name: Copy test results to deploy directory
         run: |
-          mkdir -p results_deploy
-          if [ -d "tests" ]; then
-            cp -r tests/* results_deploy/
-          else
-            echo "Tests directory not found!"
+          if (-Not (Test-Path -Path "results_deploy")) {
+            New-Item -ItemType Directory -Path "results_deploy"
+          }
+          if (Test-Path -Path "tests") {
+            Copy-Item -Path "tests/*" -Destination "results_deploy/"
+          } else {
+            Write-Output "Tests directory not found!"
             exit 1
-          fi
+          }
 
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: results_deploy/
 
-      - name: Deploy to Netlify
-        run: netlify deploy --prod --dir=results_deploy --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+  deploy:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: test-results
+          path: ./results
+
+      - name: Upload files to local server
+        run: |
+          $files = Get-ChildItem -Path "./results"
+          foreach ($file in $files) {
+            $filePath = $file.FullName
+            Write-Output "Uploading $filePath"
+            curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php
+          }
