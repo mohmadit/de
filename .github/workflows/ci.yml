@@ -62,6 +62,8 @@ jobs:
           foreach ($file in $files) {
             $filePath = $file.FullName
             Write-Output "Uploading $filePath"
-            $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php
+            $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php -v
             Write-Output "cURL response: $response"
           }
+        shell: pwsh
+
