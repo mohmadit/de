@@ -112,3 +112,16 @@ jobs:
             Copy-Item -Path $file.FullName -Destination $destination
             Write-Output "Uploaded $file.FullName to $destination"
           }
+
+      - name: Verify files on local server
+        run: |
+          $files = Get-ChildItem -Path "D:/xampp/htdocs/aqdevops/results_deploy"
+          if ($files.Count -eq 0) {
+            Write-Output "No files found in the destination directory!"
+            exit 1
+          } else {
+            Write-Output "Files successfully uploaded to the destination directory:"
+            foreach ($file in $files) {
+              Write-Output $file.FullName
+            }
+          }
