@@ -66,51 +66,19 @@ jobs:
       - name: Build Project
         run: Write-Output "Building the project..."
 
-      - name: Copy test results to deploy directory
-        run: |
-          if (-Not (Test-Path -Path "results_deploy")) {
-            New-Item -ItemType Directory -Path "results_deploy"
-          }
-          if (Test-Path -Path "tests") {
-            Copy-Item -Path "tests/*" -Destination "results_deploy/"
-          } else {
-            Write-Output "Tests directory not found!"
-            exit 1
-          }
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: results_deploy/
-
-  deploy:
-    runs-on: windows-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: test-results
-          path: ./results
-
-      - name: Create destination directory on local server
+      - name: Ensure results directory exists on local server
         run: |
           if (-Not (Test-Path -Path "D:/xampp/htdocs/aqdevops/results_deploy")) {
             New-Item -ItemType Directory -Path "D:/xampp/htdocs/aqdevops/results_deploy"
           }
 
-      - name: Upload files to local server
+      - name: Upload files directly to local server
         run: |
-          $files = Get-ChildItem -Path "./results"
-          foreach ($file in $files) {
-            $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + $file.Name
-            Copy-Item -Path $file.FullName -Destination $destination
-            Write-Output "Uploaded $file.FullName to $destination"
+          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
+          foreach ($file in $changedFiles) {
+            $destination = "D:/xampp/htdocs/aqdevops/results_deploy/" + [System.IO.Path]::GetFileName($file)
+            Copy-Item -Path $file -Destination $destination
+            Write-Output "Uploaded $file to $destination"
           }
 
       - name: Verify files on local server
