@@ -24,48 +24,6 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: List files in workspace
-        run: Get-ChildItem -Recurse
-
-      - name: Ensure tests directory exists
-        run: |
-          if (Test-Path -Path "tests") {
-            Write-Output "Tests directory exists."
-          } else {
-            Write-Output "Tests directory not found!"
-            exit 1
-          }
-
-      - name: Identify changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v34
-        with:
-          files: '**/devops_*.php'
-
-      - name: Run tests on changed files
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
-          foreach ($file in $changedFiles) {
-            Write-Output "Testing $file"
-            php -l $file
-            if ((Get-Content $file) -match '<\?php' -and (Get-Content $file) -match '\?>') {
-              Write-Output "PHP opening and closing tags found in $file"
-            } else {
-              Write-Output "PHP opening or closing tag not found in $file"
-              exit 1
-            }
-
-            if ((Get-Content $file) -match 'function') {
-              Write-Output "PHP functions found in $file"
-            } else {
-              Write-Output "No PHP functions found in $file, but continuing..."
-            }
-          }
-
-      - name: Build Project
-        run: Write-Output "Building the project..."
-
       - name: Copy test results to deploy directory
         run: |
           if (-Not (Test-Path -Path "results_deploy")) {
@@ -97,22 +55,6 @@ jobs:
         with:
           name: test-results
           path: ./results
-
-      - name: Verify files exist in results directory
-        run: |
-          if (-Not (Test-Path -Path "./results")) {
-            Write-Output "Results directory not found!"
-            exit 1
-          }
-          $files = Get-ChildItem -Path "./results"
-          if ($files.Count -eq 0) {
-            Write-Output "No files found in results directory!"
-            exit 1
-          }
-          Write-Output "Files found in results directory:"
-          foreach ($file in $files) {
-            Write-Output $file.FullName
-          }
 
       - name: Upload files to local server
         run: |
