@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: Prepare Files
+      - name: Copy test results to deploy directory
         run: |
           if (-Not (Test-Path -Path "results_deploy")) {
             New-Item -ItemType Directory -Path "results_deploy"
@@ -36,12 +36,38 @@ jobs:
             exit 1
           }
 
-      - name: Upload Files to Local Server
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: results_deploy/
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: test-results
+          path: ./results
+
+      - name: Upload file to local server
         run: |
-          $files = Get-ChildItem -Path "./results_deploy"
-          foreach ($file in $files) {
-            Write-Output "Uploading $($file.FullName)"
-            $response = curl -X POST -F "file=@$($file.FullName)" http://127.0.0.1/aqdevops/upload.php -v
-            Write-Output "cURL response: $response"
+          $filePath = "./results/DevOpsFileTest.php"
+          Write-Output "Uploading $filePath"
+          $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php -v
+          Write-Output "cURL response: $response"
+          # Extract download link from response
+          $responseContent = $response | Out-String
+          $jsonResponse = $responseContent | ConvertFrom-Json
+          if ($jsonResponse.status -eq 'success') {
+              Write-Output "Download link: $($jsonResponse.download_link)"
+          } else {
+              Write-Output "Error: $($jsonResponse.message)"
           }
         shell: pwsh
