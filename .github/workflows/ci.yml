@@ -56,7 +56,7 @@ jobs:
           name: test-results
           path: ./results
 
-      - name: Upload files to local server
+      - name: Upload file to local server
         run: |
           $files = Get-ChildItem -Path "./results"
           foreach ($file in $files) {
