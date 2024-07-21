@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: Copy test results to deploy directory
+      - name: Prepare Files
         run: |
           if (-Not (Test-Path -Path "results_deploy")) {
             New-Item -ItemType Directory -Path "results_deploy"
@@ -36,33 +36,12 @@ jobs:
             exit 1
           }
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: results_deploy/
-
-  deploy:
-    runs-on: windows-latest
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: test-results
-          path: ./results
-
-      - name: Upload file to local server
+      - name: Upload Files to Local Server
         run: |
-          $files = Get-ChildItem -Path "./results"
+          $files = Get-ChildItem -Path "./results_deploy"
           foreach ($file in $files) {
-            $filePath = $file.FullName
-            Write-Output "Uploading $filePath"
-            $response = curl -X POST -F "file=@$filePath" http://127.0.0.1/aqdevops/upload.php -v
+            Write-Output "Uploading $($file.FullName)"
+            $response = curl -X POST -F "file=@$($file.FullName)" http://127.0.0.1/aqdevops/upload.php -v
             Write-Output "cURL response: $response"
           }
         shell: pwsh
