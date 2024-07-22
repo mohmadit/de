@@ -34,7 +34,6 @@ jobs:
           } else {
             Write-Output "Tests directory not found!"
             exit 1
-          }
 
       - name: Identify changed files
         id: changed-files
@@ -61,7 +60,6 @@ jobs:
             } else {
               Write-Output "No PHP functions found in $file, but continuing..."
             }
-          }
 
       - name: Build Project
         run: Write-Output "Building the project..."
@@ -70,7 +68,8 @@ jobs:
         run: |
           if (-Not (Test-Path -Path "D:/xampp/htdocs/aqdevops/results_deploy")) {
             New-Item -ItemType Directory -Path "D:/xampp/htdocs/aqdevops/results_deploy"
-          
+          }
+
       - name: Deploy files to local server
         run: |
           $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
