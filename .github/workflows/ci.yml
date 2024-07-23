@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # نستخدم Ubuntu بدلاً من Windows
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
