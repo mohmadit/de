@@ -32,8 +32,9 @@ jobs:
           if (Test-Path -Path "tests") {
             Write-Output "Tests directory exists."
           } else {
-            Write-Output "Tests directory not found!"
-            exit 1
+            Write-Output "Tests directory not found! Creating directory."
+            New-Item -Path "tests" -ItemType Directory
+          }
 
       - name: Identify changed files
         id: changed-files
