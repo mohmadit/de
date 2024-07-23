@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # نستخدم Ubuntu بدلاً من Windows
 
     steps:
       - name: Checkout code
@@ -25,16 +25,16 @@ jobs:
         run: composer install
 
       - name: List files in workspace
-        run: Get-ChildItem -Recurse
+        run: ls -R
 
       - name: Ensure tests directory exists
         run: |
-          if (Test-Path -Path "tests") {
-            Write-Output "Tests directory exists."
-          } else {
-            Write-Output "Tests directory not found! Creating directory."
-            New-Item -Path "tests" -ItemType Directory
-          }
+          if [ ! -d "tests" ]; then
+            echo "Tests directory not found! Creating directory."
+            mkdir tests
+          else
+            echo "Tests directory exists."
+          fi
 
       - name: Identify changed files
         id: changed-files
@@ -44,25 +44,24 @@ jobs:
 
       - name: Run tests on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
-        shell: pwsh
         run: |
-          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
-          foreach ($file in $changedFiles) {
-            Write-Output "Testing $file"
+          changedFiles="${{ steps.changed-files.outputs.all_changed_files }}"
+          IFS=$'\n'
+          for file in $changedFiles; do
+            echo "Testing $file"
             php -l $file
-            if ((Get-Content $file) -match '<\?php' -and (Get-Content $file) -match '\?>') {
-              Write-Output "PHP opening and closing tags found in $file"
-            } else {
-              Write-Output "PHP opening or closing tag not found in $file"
+            if grep -q '<?php' "$file" && grep -q '?>' "$file"; then
+              echo "PHP opening and closing tags found in $file"
+            else
+              echo "PHP opening or closing tag not found in $file"
               exit 1
-            }
-
-            if ((Get-Content $file) -match 'function') {
-              Write-Output "PHP functions found in $file"
-            } else {
-              Write-Output "No PHP functions found in $file, but continuing..."
-            }
-          }
+            fi
+            if grep -q 'function' "$file"; then
+              echo "PHP functions found in $file"
+            else
+              echo "No PHP functions found in $file, but continuing..."
+            fi
+          done
 
       - name: Build and push Docker image
         if: steps.changed-files.outputs.any_changed == 'true'
