@@ -61,19 +61,12 @@ jobs:
               Write-Output "No PHP functions found in $file, but continuing..."
             }
 
-      - name: Build Project
-        run: Write-Output "Building the project..."
-
-      - name: Ensure results directory exists on local server
+      - name: Build and push Docker image
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          if (-Not (Test-Path -Path "D:/xampp/htdocs/aqdevops/results_deploy")) {
-            New-Item -ItemType Directory -Path "D:/xampp/htdocs/aqdevops/results_deploy"
-          }
-
-      - name: Deploy files to local server
-        run: |
-          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
-          foreach ($file in $changedFiles) {
-            Write-Output "Deploying $file"
-            curl -F "file=@$file" http://127.0.0.1/upload.php
-          }
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker build -t $DOCKER_USERNAME/devops_app .
+          docker push $DOCKER_USERNAME/devops_app
