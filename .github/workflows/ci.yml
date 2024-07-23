@@ -44,6 +44,7 @@ jobs:
 
       - name: Run tests on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
+        shell: pwsh
         run: |
           $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}".Split("`n")
           foreach ($file in $changedFiles) {
@@ -61,6 +62,7 @@ jobs:
             } else {
               Write-Output "No PHP functions found in $file, but continuing..."
             }
+          }
 
       - name: Build and push Docker image
         if: steps.changed-files.outputs.any_changed == 'true'
