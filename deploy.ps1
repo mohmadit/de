@@ -29,16 +29,18 @@ foreach ($file in $files) {
         $insertQuery | Out-File -FilePath $queryFile -Encoding utf8
 
         # قراءة محتوى الملف
-        $queryContent = Get-Content -Path $queryFile
+        $queryContent = Get-Content -Path $queryFile -Raw
 
         # تحديد مسار mysql.exe ضمن XAMPP
         $mysqlCmd = "D:\xampp\mysql\bin\mysql.exe -u $dbUser -p$dbPassword $dbName"
-        
+
         # تنفيذ استعلام الإدخال باستخدام MySQL CLI
-        $process = Start-Process -FilePath $mysqlCmd -ArgumentList "-e `" $queryContent `" -NoNewWindow -Wait
+        $process = Start-Process -FilePath $mysqlCmd -ArgumentList "-e `$queryContent`" -NoNewWindow -Wait -PassThru
 
         if ($process.ExitCode -ne 0) {
             Write-Host "Error executing query: $queryContent"
+        } else {
+            Write-Host "Query executed successfully: $insertQuery"
         }
     }
 }
