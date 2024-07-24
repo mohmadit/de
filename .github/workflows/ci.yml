@@ -29,7 +29,9 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git diff --name-only HEAD^ HEAD | grep -E 'devops_.*\.php' | head -n 1)
+          commits=$(git log -2 --pretty=format:"%H")
+          commit_array=($commits)
+          latest_file=$(git diff --name-only ${commit_array[1]} ${commit_array[0]} | grep -E 'devops_.*\.php' | head -n 1)
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
@@ -80,3 +82,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
+      - name: Clear LATEST_FILE
+        run: |
+          echo "LATEST_FILE=" >> $GITHUB_ENV
