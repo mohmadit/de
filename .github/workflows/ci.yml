@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up MySQL path
+        run: |
+          $env:PATH += ";D:\xampp\mysql\bin"
+          Write-Host "Updated PATH: $env:PATH"
+
       - name: Print current directory and list files
         run: |
           Get-ChildItem -Recurse
