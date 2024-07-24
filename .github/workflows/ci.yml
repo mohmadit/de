@@ -16,7 +16,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.2.21'
 
       - name: Install dependencies
         run: composer install
@@ -27,11 +27,12 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git diff --name-only HEAD~1 HEAD | grep 'devops_.*\.php' | head -n 1)
+          latest_file=$(git log -m -1 --name-only --pretty=format: | grep 'devops_.*\.php' | head -n 1)
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
+        shell: bash
 
       - name: Display latest file for debugging
-        run: echo "Latest file:$LATEST_FILE"
+        run: echo "Latest file:${{ env.LATEST_FILE }}"
         env:
           LATEST_FILE: ${{ steps.find_latest_file.outputs.LATEST_FILE }}
 
@@ -60,7 +61,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: v1.0.${{ github.run_number }}
           release_name: "Release ${{ github.run_number }}"
@@ -75,4 +76,4 @@ jobs:
           asset_name: $(basename ${{ steps.find_latest_file.outputs.LATEST_FILE }})
           asset_content_type: application/php
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
