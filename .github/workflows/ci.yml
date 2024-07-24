@@ -29,7 +29,11 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git ls-tree --name-only -r HEAD | grep -E 'devops_.*\.php' | xargs -I {} bash -c 'echo $(git log -1 --format="%at" -- {} ) {}' | sort -nr | head -n 1 | cut -d' ' -f2-)
+          task_id="105"  # Replace this with the actual task ID or dynamically fetch it
+          code_id="170"  # Replace this with the actual code ID or dynamically fetch it
+          publish_type="front"  # Replace this with the actual publish type or dynamically fetch it
+
+          latest_file=$(find . -type f -name "devops_*_${task_id}_${code_id}_${publish_type}.php" | sort -r | head -n 1)
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
