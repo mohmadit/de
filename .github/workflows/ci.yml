@@ -37,6 +37,13 @@ jobs:
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
+      - name: Ensure config.php is present
+        run: |
+          if [ ! -f config.php ]; then
+            echo "config.php is missing."
+            exit 1
+          fi
+
       - name: Run tests on latest file
         run: |
           vendor/bin/phpunit --configuration phpunit.xml $LATEST_FILE
