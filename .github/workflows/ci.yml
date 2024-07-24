@@ -26,19 +26,32 @@ jobs:
       - name: Install PHPUnit
         run: composer require --dev phpunit/phpunit
 
-      - name: Clean previous environment variables
+      - name: Extract task details from commit message
+        id: extract_details
         run: |
-          echo "LATEST_FILE=" >> $GITHUB_ENV
+          commit_message=$(git log -1 --pretty=%B)
+          echo "Commit message: $commit_message"
+          
+          task_id=$(echo $commit_message | grep -oP '(?<=task ID )\d+')
+          code_id=$(echo $commit_message | grep -oP '(?<=code ID )\d+')
+          publish_type=$(echo $commit_message | grep -oP '(?<=with type )\w+')
 
-      - name: Find latest devops file
-        id: find_latest_file
+          echo "TASK_ID=$task_id" >> $GITHUB_ENV
+          echo "CODE_ID=$code_id" >> $GITHUB_ENV
+          echo "PUBLISH_TYPE=$publish_type" >> $GITHUB_ENV
+
+      - name: Find the specific devops file
+        id: find_file
         run: |
-          latest_file=$(git log -1 --name-only --pretty=format: | grep -E 'devops_.*\.php' | head -n 1)
+          latest_file=$(find . -type f -name "devops_${{ env.TASK_ID }}_${{ env.CODE_ID }}_${{ env.PUBLISH_TYPE }}.php" | head -n 1)
+          if [ -z "$latest_file" ]; then
+            echo "No matching file found."
+            exit 1
+          fi
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
-        run: |
-          echo "Latest file: $LATEST_FILE"
+        run: echo "Latest file: ${{ env.LATEST_FILE }}"
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
@@ -85,5 +98,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
       - name: Clear LATEST_FILE
-        run: |
-          echo "LATEST_FILE=" >> $GITHUB_ENV
+        run: echo "LATEST_FILE=" >> $GITHUB_ENV
