@@ -13,21 +13,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up MySQL path
-        run: |
-          $env:PATH += ";D:\xampp\mysql\bin"
-          Write-Host "Updated PATH: $env:PATH"
-
       - name: Install MySQL
         run: |
           choco install mysql
           Write-Host "MySQL installed"
 
+      - name: Set up MySQL path
+        run: |
+          $env:PATH += ";C:\tools\mysql\bin"
+          Write-Host "Updated PATH: $env:PATH"
+
       - name: Verify MySQL executable
         run: |
-          Get-ChildItem -Path "D:\xampp\mysql\bin"
-          if (-Not (Test-Path "D:\xampp\mysql\bin\mysql.exe")) {
-              Write-Error "MySQL executable not found at D:\xampp\mysql\bin\mysql.exe"
+          Get-ChildItem -Path "C:\tools\mysql\bin"
+          if (-Not (Test-Path "C:\tools\mysql\bin\mysql.exe")) {
+              Write-Error "MySQL executable not found at C:\tools\mysql\bin\mysql.exe"
               exit 1
           }
 
