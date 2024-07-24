@@ -71,6 +71,10 @@ jobs:
           $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}"
           $changedFiles -split "`n" | ForEach-Object {
             Write-Host "Deploying $_"
+            if (-Not (Test-Path -Path "D:/xampp/htdocs/aqdevops/upload")) {
+              Write-Host "Deployment path not found! Creating directory."
+              New-Item -ItemType Directory -Path "D:/xampp/htdocs/aqdevops/upload"
+            }
             Copy-Item -Path $_ -Destination "D:/xampp/htdocs/aqdevops/upload" -Force
           }
           powershell -File deploy.ps1
