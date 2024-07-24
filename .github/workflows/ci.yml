@@ -18,6 +18,13 @@ jobs:
           $env:PATH += ";D:\xampp\mysql\bin"
           Write-Host "Updated PATH: $env:PATH"
 
+      - name: Verify MySQL executable
+        run: |
+          if (-Not (Test-Path "D:\xampp\mysql\bin\mysql.exe")) {
+            Write-Error "MySQL executable not found at D:\xampp\mysql\bin\mysql.exe"
+            exit 1
+          }
+
       - name: Print current directory and list files
         run: |
           Get-ChildItem -Recurse
