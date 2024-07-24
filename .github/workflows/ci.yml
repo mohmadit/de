@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
@@ -25,16 +25,16 @@ jobs:
         run: composer install
 
       - name: List files in workspace
-        run: ls -R
+        run: Get-ChildItem -Recurse
 
       - name: Ensure tests directory exists
         run: |
-          if [ ! -d "tests" ]; then
-            echo "Tests directory not found! Creating directory."
-            mkdir tests
-          else
-            echo "Tests directory exists."
-          fi
+          if (-Not (Test-Path -Path "tests")) {
+            Write-Host "Tests directory not found! Creating directory."
+            New-Item -ItemType Directory -Path "tests"
+          } else {
+            Write-Host "Tests directory exists."
+          }
 
       - name: Identify changed files
         id: changed-files
@@ -45,30 +45,41 @@ jobs:
       - name: Run tests on changed files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          changedFiles="${{ steps.changed-files.outputs.all_changed_files }}"
-          IFS=$'\n'
-          for file in $changedFiles; do
-            echo "Testing $file"
-            php -l $file
-            if grep -q '<?php' "$file" && grep -q '?>' "$file"; then
-              echo "PHP opening and closing tags found in $file"
-            else
-              echo "PHP opening or closing tag not found in $file"
+          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}"
+          $changedFiles -split "`n" | ForEach-Object {
+            Write-Host "Testing $_"
+            php -l $_
+            if (Select-String -Pattern '<?php' -Path $_ -Quiet -SimpleMatch -List) {
+              Write-Host "PHP opening and closing tags found in $_"
+            } else {
+              Write-Host "PHP opening or closing tag not found in $_"
               exit 1
-            fi
-            if grep -q 'function' "$file"; then
-              echo "PHP functions found in $file"
-            else
-              echo "No PHP functions found in $file, but continuing..."
-            fi
-          done
+            }
+            if (Select-String -Pattern 'function' -Path $_ -Quiet -SimpleMatch -List) {
+              Write-Host "PHP functions found in $_"
+            } else {
+              Write-Host "No PHP functions found in $_, but continuing..."
+            }
+          }
 
-      - name: Build and push Docker image
-        if: steps.changed-files.outputs.any_changed == 'true'
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Run unit tests
+        run: phpunit --configuration phpunit.xml
+
+      - name: Build project
+        run: Compress-Archive -Path * -DestinationPath project.zip
+
+      - name: Deploy locally
+        run: powershell -File deploy.ps1
+
+      - name: Generate deployment report
         run: |
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker build -t $DOCKER_USERNAME/devops_app:latest .
-          docker push $DOCKER_USERNAME/devops_app:latest
+          "Deployment Report" | Out-File -FilePath report.txt
+          "Date: $(Get-Date)" | Out-File -FilePath report.txt -Append
+          "Files deployed:" | Out-File -FilePath report.txt -Append
+          $changedFiles | Out-File -FilePath report.txt -Append
+
+      - name: Save deployment report
+        uses: actions/upload-artifact@v2
+        with:
+          name: deployment-report
+          path: report.txt
