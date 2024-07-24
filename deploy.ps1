@@ -6,6 +6,12 @@ param (
     [string]$changedFiles  # هذا المعامل سيتم تعيينه من GitHub Actions
 )
 
+# التحقق مما إذا كان $mysqlCmd موجودًا
+if (-Not (Test-Path $mysqlCmd)) {
+    Write-Host "MySQL command not found at $mysqlCmd"
+    exit 1
+}
+
 # التحقق مما إذا كان $changedFiles قد تم توفيره
 if (-Not $changedFiles) {
     Write-Host "No files to deploy."
