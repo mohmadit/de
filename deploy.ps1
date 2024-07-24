@@ -3,7 +3,7 @@ param (
     [string]$database = "de",
     [string]$user = "root",
     [string]$password = "",
-    [string]$changedFiles  # هذا المعامل سيتم تعيينه من GitHub Actions
+    [string]$changedFiles
 )
 
 # التحقق مما إذا كان $mysqlCmd موجودًا
