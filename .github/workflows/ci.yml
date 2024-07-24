@@ -27,7 +27,8 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git ls-files 'devops_*.php' | xargs ls -t | head -n 1)
+          # Find the most recent devops_*.php file
+          latest_file=$(find . -name 'devops_*.php' -print0 | xargs -0 ls -t | head -n 1)
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
