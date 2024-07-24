@@ -1,18 +1,20 @@
 param (
+    [string]$changedFiles,
     [string]$mysqlCmd = "D:\xampp\mysql\bin\mysql.exe",
     [string]$database = "de",
     [string]$user = "root",
-    [string]$password = "",
-    [string]$changedFiles
+    [string]$password = ""
 )
 
-# التحقق مما إذا كان $mysqlCmd موجودًا
+Write-Host "Changed Files: $changedFiles"
+
+# تحقق مما إذا كان ملف MySQL موجودًا
 if (-Not (Test-Path $mysqlCmd)) {
     Write-Host "MySQL command not found at $mysqlCmd"
     exit 1
 }
 
-# التحقق مما إذا كان $changedFiles قد تم توفيره
+# تحقق مما إذا كان $changedFiles قد تم توفيره
 if (-Not $changedFiles) {
     Write-Host "No files to deploy."
     exit 1
@@ -21,14 +23,24 @@ if (-Not $changedFiles) {
 # معالجة كل ملف
 $changedFiles -split "`n" | ForEach-Object {
     $filePath = "D:/xampp/htdocs/aqdevops/upload/$_"
-    Write-Host "Processing file: $filePath"
+    Write-Host "Deploying $_"
+    Write-Host "File path: $filePath"
+
+    # التحقق مما إذا كانت مسار الدليل موجودًا وإذا لم يكن، قم بإنشائه
+    if (-Not (Test-Path -Path "D:/xampp/htdocs/aqdevops/upload")) {
+        Write-Host "Deployment path not found! Creating directory."
+        New-Item -ItemType Directory -Path "D:/xampp/htdocs/aqdevops/upload"
+    }
+
+    # نسخ الملف إلى مسار النشر
+    Copy-Item -Path $_ -Destination "D:/xampp/htdocs/aqdevops/upload" -Force
+    Write-Host "Copied $_ to $filePath"
 
     # هروب الأحرف المفردة في أسماء الملفات لتجنب أخطاء SQL
     $escapedFileName = $_.Split('/')[-1] -replace "'", "''"
     $escapedFilePath = $filePath -replace "'", "''"
 
     $query = "INSERT INTO deployed_files (filename, filepath) VALUES ('$escapedFileName', '$escapedFilePath');"
-
     Write-Host "Executing query: $query"
 
     # تنفيذ استعلام SQL
