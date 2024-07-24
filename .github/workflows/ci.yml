@@ -15,21 +15,33 @@ jobs:
 
       - name: Install MySQL
         run: |
-          choco install mysql
+          choco install mysql -y
           Write-Host "MySQL installed"
+
+      - name: Verify MySQL installation path
+        run: |
+          $mysqlPath = (Get-Command mysql.exe).Path
+          Write-Host "MySQL installation path: $mysqlPath"
+          if (-Not $mysqlPath) {
+              Write-Error "MySQL installation path not found"
+              exit 1
+          }
 
       - name: Set up MySQL path
         run: |
-          $env:PATH += ";C:\tools\mysql\bin"
+          $mysqlPath = (Get-Command mysql.exe).Path
+          $mysqlBinPath = [System.IO.Path]::GetDirectoryName($mysqlPath)
+          $env:PATH += ";$mysqlBinPath"
           Write-Host "Updated PATH: $env:PATH"
 
       - name: Verify MySQL executable
         run: |
-          Get-ChildItem -Path "C:\tools\mysql\bin"
-          if (-Not (Test-Path "C:\tools\mysql\bin\mysql.exe")) {
-              Write-Error "MySQL executable not found at C:\tools\mysql\bin\mysql.exe"
+          $mysqlPath = (Get-Command mysql.exe).Path
+          if (-Not (Test-Path $mysqlPath)) {
+              Write-Error "MySQL executable not found at $mysqlPath"
               exit 1
           }
+          Get-ChildItem -Path $mysqlPath
 
       - name: Print current directory and list files
         run: |
