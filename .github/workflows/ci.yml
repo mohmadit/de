@@ -31,12 +31,14 @@ jobs:
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
-        run: echo "Latest file: $LATEST_FILE"
+        run: |
+          echo "Latest file: $LATEST_FILE"
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
       - name: Run tests on latest file
-        run: vendor/bin/phpunit --configuration phpunit.xml $LATEST_FILE
+        run: |
+          vendor/bin/phpunit --configuration phpunit.xml $LATEST_FILE
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
