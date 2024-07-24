@@ -48,8 +48,11 @@ jobs:
         id: find_file
         run: |
           latest_file=$(find . -type f -name "devops_${{ env.TASK_ID }}_${{ env.CODE_ID }}_${{ env.PUBLISH_TYPE }}.php" | head -n 1)
+          echo "Searching for file: devops_${{ env.TASK_ID }}_${{ env.CODE_ID }}_${{ env.PUBLISH_TYPE }}.php"
           if [ -z "$latest_file" ]; then
             echo "No matching file found."
+            echo "Available files:"
+            find . -type f -name "devops_*.php"
             exit 1
           fi
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
@@ -58,7 +61,7 @@ jobs:
         run: |
           echo "Latest file: $LATEST_FILE"
         env:
-          LATEST_FILE: ${{ steps.find_file.outputs.LATEST_FILE }}
+          LATEST_FILE: ${{ env.LATEST_FILE }}
 
       - name: Validate PHP file structure
         run: |
@@ -79,7 +82,7 @@ jobs:
 
           echo "File $LATEST_FILE contains valid PHP tags."
         env:
-          LATEST_FILE: ${{ steps.find_file.outputs.LATEST_FILE }}
+          LATEST_FILE: ${{ env.LATEST_FILE }}
 
       - name: Create Release
         id: create_release
@@ -96,8 +99,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_file.outputs.LATEST_FILE }}
-          asset_name: $(basename ${{ steps.find_file.outputs.LATEST_FILE }})
+          asset_path: ${{ env.LATEST_FILE }}
+          asset_name: $(basename ${{ env.LATEST_FILE }})
           asset_content_type: application/php
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
