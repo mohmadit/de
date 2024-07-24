@@ -65,11 +65,15 @@ jobs:
       - name: Run unit tests
         run: vendor/bin/phpunit --configuration phpunit.xml
 
-      - name: Build project
-        run: Compress-Archive -Path * -DestinationPath project.zip
-
       - name: Deploy locally
-        run: powershell -File deploy.ps1
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          $changedFiles = "${{ steps.changed-files.outputs.all_changed_files }}"
+          $changedFiles -split "`n" | ForEach-Object {
+            Write-Host "Deploying $_"
+            Copy-Item -Path $_ -Destination "D:/xampp/htdocs/aqdevops/upload" -Force
+          }
+          powershell -File deploy.ps1
 
       - name: Generate deployment report
         run: |
