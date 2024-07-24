@@ -6,60 +6,48 @@ on:
       - '**/devops_*.php'
 
 jobs:
-  build:
-    runs-on: windows-latest
+  build_and_test:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install MySQL
-        run: |
-          choco install mysql -y
-          Write-Host "MySQL installed"
-
-      - name: Verify MySQL installation path
-        run: |
-          $mysqlPath = (Get-Command mysql.exe).Path
-          Write-Host "MySQL installation path: $mysqlPath"
-          if (-Not $mysqlPath) {
-              Write-Error "MySQL installation path not found"
-              exit 1
-          }
-
-      - name: Set up MySQL path
-        run: |
-          $mysqlPath = (Get-Command mysql.exe).Path
-          $mysqlBinPath = [System.IO.Path]::GetDirectoryName($mysqlPath)
-          $env:PATH += ";$mysqlBinPath"
-          Write-Host "Updated PATH: $env:PATH"
-
-      - name: Verify MySQL executable
-        run: |
-          $mysqlPath = (Get-Command mysql.exe).Path
-          if (-Not (Test-Path $mysqlPath)) {
-              Write-Error "MySQL executable not found at $mysqlPath"
-              exit 1
-          }
-          Get-ChildItem -Path $mysqlPath
-
-      - name: Print current directory and list files
-        run: |
-          Get-ChildItem -Recurse
-
-      - name: Identify changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v34
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
-          files: '**/devops_*.php'
+          php-version: 8.2.12
 
-      - name: Run deployment script
-        if: steps.changed-files.outputs.any_changed == 'true'
+      - name: Install dependencies
+        run: composer install
+
+      - name: Find latest devops file
+        id: find_latest_file
         run: |
-          pwsh deploy.ps1 -changedFiles "${{ steps.changed-files.outputs.all_changed_files }}"
+          latest_file=$(git ls-files -z 'devops_*.php' | xargs -0 ls -t | head -n 1)
+          echo "Latest file: $latest_file"
+          echo "::set-output name=latest_file::$latest_file"
 
-      - name: Save deployment report
-        uses: actions/upload-artifact@v2
+      - name: Run tests on latest file
+        run: phpunit --configuration phpunit.xml ${{ steps.find_latest_file.outputs.latest_file }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: deployment-report
-          path: report.txt
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: "Release ${{ github.run_number }}"
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_latest_file.outputs.latest_file }}
+          asset_name: $(basename ${{ steps.find_latest_file.outputs.latest_file }})
+          asset_content_type: application/php
