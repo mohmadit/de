@@ -26,6 +26,10 @@ jobs:
       - name: Install PHPUnit
         run: composer require --dev phpunit/phpunit
 
+      - name: Clean previous environment variables
+        run: |
+          echo "LATEST_FILE=" >> $GITHUB_ENV
+
       - name: Extract task details from commit message
         id: extract_details
         run: |
