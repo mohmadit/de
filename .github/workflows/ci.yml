@@ -9,7 +9,7 @@ on:
       - '**/devops_*.php'
 
 jobs:
-  build_and_deploy:
+  build:
     runs-on: windows-latest
 
     steps:
@@ -77,7 +77,6 @@ jobs:
             }
             Copy-Item -Path $_ -Destination "D:/xampp/htdocs/aqdevops/upload" -Force
           }
-          # Pass changed files to the deploy.ps1 script
           pwsh deploy.ps1 -changedFiles "$changedFiles"
 
       - name: Generate deployment report
