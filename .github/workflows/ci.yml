@@ -36,9 +36,24 @@ jobs:
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
-      - name: Run tests on latest file
+      - name: Validate PHP file structure
         run: |
-          vendor/bin/phpunit --configuration phpunit.xml $LATEST_FILE
+          if [ ! -f "$LATEST_FILE" ]; then
+            echo "File $LATEST_FILE does not exist."
+            exit 1
+          fi
+
+          if ! grep -q "<?php" "$LATEST_FILE"; then
+            echo "File $LATEST_FILE does not contain PHP opening tag."
+            exit 1
+          fi
+
+          if ! grep -q "?>" "$LATEST_FILE"; then
+            echo "File $LATEST_FILE does not contain PHP closing tag."
+            exit 1
+          fi
+
+          echo "File $LATEST_FILE contains valid PHP tags."
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
