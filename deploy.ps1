@@ -2,20 +2,22 @@ param (
     [string]$mysqlCmd = "D:\xampp\mysql\bin\mysql.exe",
     [string]$database = "de",
     [string]$user = "root",
-    [string]$password = ""
+    [string]$password = "",
+    [string]$changedFiles  # هذا المعامل سيتم تعيينه من GitHub Actions
 )
 
-# تأكد من تعيين المتغير بشكل صحيح إذا لم يتم تعيينه
-if (-not $changedFiles) {
-    Write-Host "No changed files provided."
+# التحقق مما إذا كان $changedFiles قد تم توفيره
+if (-Not $changedFiles) {
+    Write-Host "No files to deploy."
     exit 1
 }
 
+# معالجة كل ملف
 $changedFiles -split "`n" | ForEach-Object {
     $filePath = "D:/xampp/htdocs/aqdevops/upload/$_"
     Write-Host "Processing file: $filePath"
 
-    # Escape single quotes in filenames to prevent SQL errors
+    # هروب الأحرف المفردة في أسماء الملفات لتجنب أخطاء SQL
     $escapedFileName = $_.Split('/')[-1] -replace "'", "''"
     $escapedFilePath = $filePath -replace "'", "''"
 
@@ -23,7 +25,7 @@ $changedFiles -split "`n" | ForEach-Object {
 
     Write-Host "Executing query: $query"
 
-    # Execute the query and handle potential errors
+    # تنفيذ استعلام SQL
     Start-Process -FilePath $mysqlCmd -ArgumentList "-u$user -p$password -D$database -e `"$query`"" -NoNewWindow -Wait
 
     if ($?) {
