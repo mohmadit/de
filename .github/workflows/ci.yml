@@ -33,7 +33,7 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git diff --name-only HEAD^ HEAD | grep -E 'devops_.*\.php' | head -n 1)
+          latest_file=$(git log -1 --name-only --pretty=format: | grep -E 'devops_.*\.php' | head -n 1)
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
