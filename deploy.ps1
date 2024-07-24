@@ -6,6 +6,14 @@ $dbPassword = ""
 $dbName = "de"
 $dbServer = "localhost"
 
+# التحقق من وجود مسار النشر وإنشائه إذا لم يكن موجودًا
+if (-Not (Test-Path -Path $deployPath)) {
+    Write-Host "Deployment path not found! Creating directory."
+    New-Item -ItemType Directory -Path $deployPath
+} else {
+    Write-Host "Deployment path exists."
+}
+
 # نسخ الملفات إلى مجلد النشر
 Write-Host "Copying project files to deployment path..."
 Copy-Item -Recurse -Force "$projectPath/*" $deployPath
@@ -35,7 +43,7 @@ foreach ($file in $files) {
         $mysqlCmd = "D:\xampp\mysql\bin\mysql.exe -u $dbUser -p$dbPassword $dbName"
 
         # تنفيذ استعلام الإدخال باستخدام MySQL CLI
-        $process = Start-Process -FilePath $mysqlCmd -ArgumentList "-e `$queryContent`" -NoNewWindow -Wait -PassThru
+        $process = Start-Process -FilePath $mysqlCmd -ArgumentList "-e $queryContent" -NoNewWindow -Wait -PassThru
 
         if ($process.ExitCode -ne 0) {
             Write-Host "Error executing query: $queryContent"
