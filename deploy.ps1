@@ -26,11 +26,14 @@ $changedFiles -split "`n" | ForEach-Object {
     Write-Host "Executing query: $query"
 
     # تنفيذ استعلام SQL
-    Start-Process -FilePath $mysqlCmd -ArgumentList "-u$user -p$password -D$database -e `"$query`"" -NoNewWindow -Wait
+    $arguments = "-u$user -p$password -D$database -e `"$query`""
+    Start-Process -FilePath $mysqlCmd -ArgumentList $arguments -NoNewWindow -Wait -RedirectStandardError "error.log"
 
     if ($?) {
         Write-Host "File $_ deployed and recorded in database."
     } else {
         Write-Host "Error deploying file $_. Please check the database connection and query."
+        Write-Host "Error details:"
+        Get-Content "error.log"
     }
 }
