@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - '**/devops_*.php'
-    branches:
-      - main  # Replace with your branch name if different
 
 jobs:
   build_and_test:
@@ -26,18 +24,15 @@ jobs:
       - name: Install PHPUnit
         run: composer require --dev phpunit/phpunit
 
-      - name: Get the latest file from the commit
-        id: get_latest_file
+      - name: Find latest devops file
+        id: find_latest_file
         run: |
-          latest_file=$(git diff --name-only HEAD~1 HEAD | grep -E 'devops_.*\.php' | head -n 1)
-          if [ -z "$latest_file" ]; then
-            echo "No matching file found."
-            exit 1
-          fi
+          latest_file=$(git diff --name-only --diff-filter=A HEAD~1 | grep 'devops_.*\.php' | head -n 1)
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
-        run: echo "Latest file: $LATEST_FILE"
+        run: |
+          echo "Latest file: $LATEST_FILE"
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
@@ -82,6 +77,3 @@ jobs:
           asset_content_type: application/php
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-      - name: Clear LATEST_FILE
-        run: echo "LATEST_FILE=" >> $GITHUB_ENV
