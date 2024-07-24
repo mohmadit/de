@@ -26,40 +26,18 @@ jobs:
       - name: Install PHPUnit
         run: composer require --dev phpunit/phpunit
 
-      - name: Clean previous environment variables
+      - name: Get the latest file from the commit
+        id: get_latest_file
         run: |
-          echo "LATEST_FILE=" >> $GITHUB_ENV
-
-      - name: Extract task details from commit message
-        id: extract_details
-        run: |
-          commit_message=$(git log -1 --pretty=%B)
-          echo "Commit message: $commit_message"
-          
-          task_id=$(echo $commit_message | grep -oP '(?<=task ID )\d+')
-          code_id=$(echo $commit_message | grep -oP '(?<=code ID )\d+')
-          publish_type=$(echo $commit_message | grep -oP '(?<=with type )\w+')
-
-          echo "TASK_ID=$task_id" >> $GITHUB_ENV
-          echo "CODE_ID=$code_id" >> $GITHUB_ENV
-          echo "PUBLISH_TYPE=$publish_type" >> $GITHUB_ENV
-
-      - name: Find the specific devops file
-        id: find_file
-        run: |
-          latest_file=$(find . -type f -name "devops_${{ env.TASK_ID }}_${{ env.CODE_ID }}_${{ env.PUBLISH_TYPE }}.php" | head -n 1)
-          echo "Searching for file: devops_${{ env.TASK_ID }}_${{ env.CODE_ID }}_${{ env.PUBLISH_TYPE }}.php"
+          latest_file=$(git diff --name-only HEAD~1 HEAD | grep -E 'devops_.*\.php' | head -n 1)
           if [ -z "$latest_file" ]; then
             echo "No matching file found."
-            echo "Available files:"
-            find . -type f -name "devops_*.php"
             exit 1
           fi
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
-        run: |
-          echo "Latest file: $LATEST_FILE"
+        run: echo "Latest file: $LATEST_FILE"
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
