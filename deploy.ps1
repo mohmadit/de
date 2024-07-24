@@ -4,6 +4,7 @@ $deployPath = "$projectPath/upload"
 $dbUser = "root"
 $dbPassword = ""
 $dbName = "de"
+$dbServer = "localhost"
 
 # نسخ الملفات إلى مجلد النشر
 Write-Host "Copying project files to deployment path..."
@@ -23,15 +24,21 @@ foreach ($file in $files) {
         # صياغة استعلام الإدخال
         $insertQuery = [string]::Format($insertQueryBase, $filename, $filepath)
 
-        # تنفيذ استعلام الإدخال باستخدام MySQL CLI من XAMPP
-        $mysqlCmd = "D:\xampp\mysql\bin\mysql.exe"
-        $arguments = "-u $dbUser -p$dbPassword $dbName -e `" $insertQuery `""
-        
-        # تنفيذ استعلام الإدخال
-        Start-Process -FilePath $mysqlCmd -ArgumentList $arguments -NoNewWindow -Wait
+        # حفظ الاستعلام في ملف مؤقت
+        $queryFile = "$deployPath/temp_query.sql"
+        $insertQuery | Out-File -FilePath $queryFile -Encoding utf8
 
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Error executing query: $insertQuery"
+        # قراءة محتوى الملف
+        $queryContent = Get-Content -Path $queryFile
+
+        # تحديد مسار mysql.exe ضمن XAMPP
+        $mysqlCmd = "D:\xampp\mysql\bin\mysql.exe -u $dbUser -p$dbPassword $dbName"
+        
+        # تنفيذ استعلام الإدخال باستخدام MySQL CLI
+        $process = Start-Process -FilePath $mysqlCmd -ArgumentList "-e `" $queryContent `" -NoNewWindow -Wait
+
+        if ($process.ExitCode -ne 0) {
+            Write-Host "Error executing query: $queryContent"
         }
     }
 }
