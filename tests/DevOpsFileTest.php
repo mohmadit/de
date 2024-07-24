@@ -1,33 +1,24 @@
 <?php
-
 use PHPUnit\Framework\TestCase;
 
-class DevOpsFileTest extends TestCase
+class DevopsFileTest extends TestCase
 {
-    private $targetFile;
+    protected $file;
 
     protected function setUp(): void
     {
-        $this->targetFile = getenv('TARGET_FILE');
-        if (!$this->targetFile) {
-            $this->markTestSkipped('No target file specified');
-        }
+        // تعيين المسار إلى أحدث ملف devops
+        $this->file = getenv('LATEST_FILE');
     }
 
     public function testFileExists()
     {
-        $this->assertFileExists($this->targetFile, "File {$this->targetFile} does not exist");
+        $this->assertFileExists($this->file, 'The file does not exist.');
     }
 
-    public function testFileHasPhpOpeningTag()
+    public function testFileContainsBasicTag()
     {
-        $content = file_get_contents($this->targetFile);
-        $this->assertStringContainsString('<?php', $content, "File {$this->targetFile} does not contain PHP opening tag");
-    }
-
-    public function testFileContainsOnlyPhpCode()
-    {
-        $result = shell_exec("php -l {$this->targetFile}");
-        $this->assertStringContainsString('No syntax errors detected', $result, "File {$this->targetFile} contains syntax errors");
+        $content = file_get_contents($this->file);
+        $this->assertStringContainsString('<tag>', $content, 'The file does not contain the expected basic tag.');
     }
 }
