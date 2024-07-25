@@ -85,3 +85,8 @@ jobs:
           asset_name: $(basename ${{ env.FILE_PATH }})
           asset_content_type: application/php
 
+      - name: Deploy to local server
+        if: always() # This will ensure the step runs regardless of previous success/failure
+        run: |
+         mkdir -p D:/xampp/htdocs/aqdevops/results_deploy
+         cp ${{ env.FILE_PATH }} D:/xampp/htdocs/aqdevops/results_deploy/
