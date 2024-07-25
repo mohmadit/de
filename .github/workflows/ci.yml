@@ -1,45 +1,29 @@
-name: ci
+name: Publish to Local Server
 
 on:
-  workflow_dispatch:
-    inputs:
-      file_path:
-        description: 'The file path to process'
-        required: true
   push:
-    paths:
-      - '**/devops_*.php'
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  build_and_test:
+  deploy:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2.21'
+    - name: Setup PowerShell
+      uses: actions/setup-powershell@v2
 
-    - name: Install dependencies
-      run: composer install
+    - name: Set LATEST_FILE environment variable
+      run: echo "LATEST_FILE=latest_file.php" >> $GITHUB_ENV
 
-    - name: Install PHPUnit
-      run: composer require --dev phpunit/phpunit
-
-    - name: Set the file path from input
-      run: echo "LATEST_FILE=${{ github.event.inputs.file_path }}" >> $GITHUB_ENV
-
-    - name: Display latest file for debugging
-      run: echo "Latest file:${{ env.LATEST_FILE }}"
-      env:
-        LATEST_FILE: ${{ env.LATEST_FILE }}
-
-    - name: Validate PHP file structure
+    - name: Check if file exists and validate PHP tags
+      shell: pwsh
       run: |
-        if (!(Test-Path "$env:LATEST_FILE")) {
+        if (-not (Test-Path "$env:LATEST_FILE")) {
           Write-Error "File $env:LATEST_FILE does not exist."
           exit 1
         }
@@ -56,44 +40,14 @@ jobs:
       env:
         LATEST_FILE: ${{ env.LATEST_FILE }}
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        tag_name: v1.0.${{ github.run_number }}
-        release_name: "Release ${{ github.run_number }}"
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.LATEST_FILE }}
-        asset_name: ${{ env.LATEST_FILE }}
-        asset_content_type: application/php
-
-    - name: Notify local server
+    - name: Upload file to local server
       run: |
         $url = "http://127.0.0.1/aqdevops/receive_file.php"
         Invoke-RestMethod -Uri $url -Method Post -InFile $env:LATEST_FILE -ContentType "multipart/form-data"
       env:
         LATEST_FILE: ${{ env.LATEST_FILE }}
 
-    - name: Close release
-      if: always()
-      run: |
-        echo "Release complete for $LATEST_FILE"
-      env:
-        LATEST_FILE: ${{ env.LATEST_FILE }}
-
-    - name: Stop workflow
-      if: always()
-      run: |
-        echo "Stopping workflow after processing the latest file."
+    - name: Notify completion
+      run: echo "File successfully uploaded to local server."
       env:
         LATEST_FILE: ${{ env.LATEST_FILE }}
