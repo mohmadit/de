@@ -1,53 +1,46 @@
-name: Publish to Local Server
+name: CI
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      file_path:
+        description: 'File path'
+        required: true
+        default: 'path/to/your/actual/file.php'  # قم بتعديل هذا المسار ليعكس المسار الفعلي للملفات في مشروعك
 
 jobs:
-  deploy:
+  build:
     runs-on: windows-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Setup PowerShell
-      uses: actions/setup-powershell@v2
-
-    - name: Set LATEST_FILE environment variable
-      run: echo "LATEST_FILE=latest_file.php" >> $GITHUB_ENV
-
-    - name: Check if file exists and validate PHP tags
-      shell: pwsh
+    - name: Validate PHP file
       run: |
-        if (-not (Test-Path "$env:LATEST_FILE")) {
-          Write-Error "File $env:LATEST_FILE does not exist."
+        $file_path = '${{ github.event.inputs.file_path }}'
+        if (-not (Test-Path $file_path)) {
+          Write-Error "File $file_path does not exist."
           exit 1
         }
-        $content = Get-Content -Path $env:LATEST_FILE
+        $content = Get-Content -Path $file_path
         if (-not ($content -match '<\?php')) {
-          Write-Error "File $env:LATEST_FILE does not contain PHP opening tag."
+          Write-Error "File $file_path does not contain PHP opening tag."
           exit 1
         }
         if (-not ($content -match '\?>')) {
-          Write-Error "File $env:LATEST_FILE does not contain PHP closing tag."
+          Write-Error "File $file_path does not contain PHP closing tag."
           exit 1
         }
-        Write-Host "File $env:LATEST_FILE contains valid PHP tags."
-      env:
-        LATEST_FILE: ${{ env.LATEST_FILE }}
+        Write-Host "File $file_path contains valid PHP tags."
 
-    - name: Upload file to local server
+    - name: Run tests
       run: |
-        $url = "http://127.0.0.1/aqdevops/receive_file.php"
-        Invoke-RestMethod -Uri $url -Method Post -InFile $env:LATEST_FILE -ContentType "multipart/form-data"
-      env:
-        LATEST_FILE: ${{ env.LATEST_FILE }}
+        # Add your test commands here
+        Write-Host "Running tests..."
 
     - name: Notify completion
-      run: echo "File successfully uploaded to local server."
-      env:
-        LATEST_FILE: ${{ env.LATEST_FILE }}
+      run: echo "CI job completed."
