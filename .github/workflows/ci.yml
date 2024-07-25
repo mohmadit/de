@@ -59,6 +59,16 @@ jobs:
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
+      - name: Run PHP lint
+        run: php -l ${{ env.LATEST_FILE }}
+        env:
+          LATEST_FILE: ${{ env.LATEST_FILE }}
+
+      - name: Run PHPUnit tests
+        run: vendor/bin/phpunit
+        env:
+          LATEST_FILE: ${{ env.LATEST_FILE }}
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
