@@ -1,4 +1,4 @@
-name: Process and Deploy Changed PHP Files
+name: ci
 
 on:
   push:
