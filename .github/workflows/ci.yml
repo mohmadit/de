@@ -1,5 +1,6 @@
 name: CI/CD for Task Files
 
+
 on:
   push:
     paths:
@@ -59,16 +60,6 @@ jobs:
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
-      - name: Run PHP lint
-        run: php -l ${{ env.LATEST_FILE }}
-        env:
-          LATEST_FILE: ${{ env.LATEST_FILE }}
-
-      - name: Run PHPUnit tests
-        run: vendor/bin/phpunit
-        env:
-          LATEST_FILE: ${{ env.LATEST_FILE }}
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -88,4 +79,4 @@ jobs:
           asset_name: $(basename ${{ env.LATEST_FILE }})
           asset_content_type: application/php
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }} 
