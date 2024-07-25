@@ -1,4 +1,4 @@
-name: CI/CD_for_Task_Files
+name: ci
 
 on:
   workflow_dispatch:
@@ -82,5 +82,12 @@ jobs:
         if: always()
         run: |
           echo "Release complete for $LATEST_FILE"
+        env:
+          LATEST_FILE: ${{ env.LATEST_FILE }}
+
+      - name: Stop workflow
+        if: always()
+        run: |
+          echo "Stopping workflow after processing the latest file."
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
