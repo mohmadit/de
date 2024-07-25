@@ -1,1 +1,58 @@
+name: CI/CD for DevOps Project
+
+on:
+  push:
+    paths:
+      - 'devops_*.php' # تشغيل عند نشر ملف devops_*.php
+    branches:
+      - main # الفرع المستهدف
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, json, curl
+
+    - name: Validate PHP syntax
+      run: php -l ${{ github.event.head_commit.modified[0] }}
+
+    - name: Run PHP tag tests
+      run: |
+        FILE_CONTENT=$(cat ${{ github.event.head_commit.modified[0] }})
+        if [[ $FILE_CONTENT == "<?php"* && $FILE_CONTENT == *"?>" ]]; then
+          echo "File contains valid PHP tags."
+        else
+          echo "File does not contain valid PHP tags."
+          exit 1
+        fi
+
+    - name: Create a release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        tag_name: "release-${{ github.sha }}"
+        release_name: "Release for ${{ github.sha }}"
+        body: "Automated release for changes in devops_*.php"
+        draft: false
+        prerelease: false
+
+    - name: Upload file to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ github.event.head_commit.modified[0] }}
+        asset_name: ${{ github.event.head_commit.modified[0] }}
+        asset_content_type: application/php
 
