@@ -16,7 +16,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.2.21'
 
       - name: Install dependencies
         run: composer install
@@ -37,8 +37,6 @@ jobs:
 
       - name: Display latest file for debugging
         run: echo "Latest file:${{ env.LATEST_FILE }}"
-        env:
-          LATEST_FILE: ${{ env.LATEST_FILE }}
 
       - name: Validate PHP file structure
         run: |
@@ -65,7 +63,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: v1.0.${{ github.run_number }}
           release_name: "Release ${{ github.run_number }}"
@@ -80,4 +78,4 @@ jobs:
           asset_name: $(basename ${{ env.LATEST_FILE }})
           asset_content_type: application/php
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
