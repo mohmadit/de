@@ -1,51 +1,87 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      file_path:
+        description: 'Path to the file to process'
+        required: true
+  push:
+    paths:
+      - '**/devops_*.php'
+
 jobs:
-  check_file:
+  build_and_test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Check for PHP files
-        run: |
-          CHANGED_FILE=$(git diff --name-only HEAD~1 HEAD | grep 'devops_.*\.php' || true)
-          if [ -z "$CHANGED_FILE" ]; then
-            echo "No matching PHP files changed."
-            exit 0
-          fi
-          echo "CHANGED_FILE=${CHANGED_FILE}" >> $GITHUB_ENV
-        shell: bash
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
 
-      - name: Show changed file
-        run: echo "Changed file:${{ env.CHANGED_FILE }}"
-        env:
-          CHANGED_FILE: ${{ env.CHANGED_FILE }}
+      - name: Install dependencies
+        run: composer install
 
-      - name: Process PHP file
-        if: env.CHANGED_FILE
+      - name: Install PHPUnit
+        run: composer require --dev phpunit/phpunit
+
+      - name: Get file path from input
+        if: github.event_name == 'workflow_dispatch'
+        id: get_file_path
+        run: echo "FILE_PATH=${{ github.event.inputs.file_path }}" >> $GITHUB_ENV
+
+      - name: Find latest devops file
+        if: github.event_name == 'push'
+        id: find_latest_file
         run: |
-          if [ ! -f "${{ env.CHANGED_FILE }}" ]; then
-            echo "File ${{ env.CHANGED_FILE }} does not exist."
+          latest_file=$(find . -name 'devops_*.php' -print0 | xargs -0 ls -t | head -n 1)
+          echo "FILE_PATH=$latest_file" >> $GITHUB_ENV
+
+      - name: Display file for debugging
+        run: echo "File path:${{ env.FILE_PATH }}"
+
+      - name: Validate PHP file structure
+        run: |
+          if [ ! -f "$FILE_PATH" ]; then
+            echo "File $FILE_PATH does not exist."
             exit 1
           fi
-          # أضف هنا كود معالجة الملف المطلوب
-          echo "Processing file ${{ env.CHANGED_FILE }}"
-        env:
-          CHANGED_FILE: ${{ env.CHANGED_FILE }}
+          if ! grep -q "<?php" "$FILE_PATH"; then
+            echo "File $FILE_PATH does not contain PHP opening tag."
+            exit 1
+          fi
+          if ! grep -q "?>" "$FILE_PATH"; then
+            echo "File $FILE_PATH does not contain PHP closing tag."
+            exit 1
+          fi
+          echo "File $FILE_PATH contains valid PHP tags."
 
-      - name: Create a release
-        if: env.CHANGED_FILE
-        run: |
-          TAG_NAME="v1.0.$(date +%s)"
-          RELEASE_NAME="Release for file ${{ env.CHANGED_FILE }}"
-          RELEASE_BODY="This release contains the updated code for ${{ env.CHANGED_FILE }}."
-          curl -X POST -H "Authorization: token ${{ secrets.TOKEN }}" \
-              -d "{\"tag_name\": \"$TAG_NAME\", \"target_commitish\": \"main\", \"name\": \"$RELEASE_NAME\", \"body\": \"$RELEASE_BODY\", \"draft\": false, \"prerelease\": false}" \
-              https://api.github.com/repos/${{ github.repository }}/releases
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: "Release ${{ github.run_number }}"
+          draft: false
+          prerelease: false
+
+      - name: Stop the workflow after release creation
+        run: exit 0
+
+      - name: Upload Release Asset
+        if: always() # This will ensure the step runs regardless of previous success/failure
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.FILE_PATH }}
+          asset_name: $(basename ${{ env.FILE_PATH }})
+          asset_content_type: application/php
+
