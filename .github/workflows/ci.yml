@@ -32,7 +32,7 @@ jobs:
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
-        run: echo "Latest file: ${{ env.LATEST_FILE }}"
+        run: echo "Latest file:${{ env.LATEST_FILE }}"
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
