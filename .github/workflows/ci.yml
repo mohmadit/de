@@ -2,13 +2,17 @@ name: ci
 
 on:
   workflow_dispatch:
+    inputs:
+      file_path:
+        description: 'The file path to process'
+        required: true
   push:
     paths:
       - '**/devops_*.php'
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -25,11 +29,8 @@ jobs:
     - name: Install PHPUnit
       run: composer require --dev phpunit/phpunit
 
-    - name: Find latest devops file
-      id: find_latest_file
-      run: |
-        latest_file=$(find . -name 'devops_*.php' -print0 | xargs -0 ls -t | head -n 1)
-        echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
+    - name: Set the file path from input
+      run: echo "LATEST_FILE=${{ github.event.inputs.file_path }}" >> $GITHUB_ENV
 
     - name: Display latest file for debugging
       run: echo "Latest file:${{ env.LATEST_FILE }}"
@@ -38,19 +39,20 @@ jobs:
 
     - name: Validate PHP file structure
       run: |
-        if [ ! -f "$LATEST_FILE" ]; then
-          echo "File $LATEST_FILE does not exist."
+        if (!(Test-Path "$env:LATEST_FILE")) {
+          Write-Error "File $env:LATEST_FILE does not exist."
           exit 1
-        fi
-        if ! grep -q "<?php" "$LATEST_FILE"; then
-          echo "File $LATEST_FILE does not contain PHP opening tag."
+        }
+        $content = Get-Content -Path $env:LATEST_FILE
+        if (-not ($content -match '<\?php')) {
+          Write-Error "File $env:LATEST_FILE does not contain PHP opening tag."
           exit 1
-        fi
-        if ! grep -q "?>" "$LATEST_FILE"; then
-          echo "File $LATEST_FILE does not contain PHP closing tag."
+        }
+        if (-not ($content -match '\?>')) {
+          Write-Error "File $env:LATEST_FILE does not contain PHP closing tag."
           exit 1
-        fi
-        echo "File $LATEST_FILE contains valid PHP tags."
+        }
+        Write-Host "File $env:LATEST_FILE contains valid PHP tags."
       env:
         LATEST_FILE: ${{ env.LATEST_FILE }}
 
@@ -75,9 +77,10 @@ jobs:
         asset_name: ${{ env.LATEST_FILE }}
         asset_content_type: application/php
 
-    - name: Deploy to local server
+    - name: Notify local server
       run: |
-        scp -o StrictHostKeyChecking=no ${{ env.LATEST_FILE }} user@127.0.0.1:/D:/xampp/htdocs/aqdevops/results_deploy/
+        $url = "http://127.0.0.1/aqdevops/receive_file.php"
+        Invoke-RestMethod -Uri $url -Method Post -InFile $env:LATEST_FILE -ContentType "multipart/form-data"
       env:
         LATEST_FILE: ${{ env.LATEST_FILE }}
 
