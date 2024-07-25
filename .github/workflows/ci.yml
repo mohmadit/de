@@ -27,7 +27,7 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git log -1 --name-only --pretty=format: -- **/devops_*.php)
+          latest_file=$(git log -m -1 --name-only --pretty=format: | grep 'devops_.*\.php' | head -n 1 || true)
           if [ -z "$latest_file" ]; then
             echo "No devops_*.php file found in the latest commit."
             exit 1
