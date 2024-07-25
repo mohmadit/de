@@ -1,6 +1,7 @@
 name: CI/CD for Task Files
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - '**/devops_*.php'
@@ -31,8 +32,7 @@ jobs:
           echo "LATEST_FILE=$latest_file" >> $GITHUB_ENV
 
       - name: Display latest file for debugging
-        run: |
-          echo "Latest file: $LATEST_FILE"
+        run: echo "Latest file: ${{ env.LATEST_FILE }}"
         env:
           LATEST_FILE: ${{ env.LATEST_FILE }}
 
@@ -77,3 +77,10 @@ jobs:
           asset_path: ${{ env.LATEST_FILE }}
           asset_name: ${{ env.LATEST_FILE }}
           asset_content_type: application/php
+
+      - name: Close release
+        if: always()
+        run: |
+          echo "Release complete for $LATEST_FILE"
+        env:
+          LATEST_FILE: ${{ env.LATEST_FILE }}
