@@ -1,4 +1,4 @@
-name: CI/CD for Task Files
+name: CI/CD_for_Task_Files
 
 on:
   workflow_dispatch:
