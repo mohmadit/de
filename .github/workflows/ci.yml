@@ -1,1 +1,83 @@
+name: ci
 
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/devops_*.php'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2.21'
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Install PHPUnit
+        run: composer require --dev phpunit/phpunit
+
+      - name: Get changed file
+        id: get_file
+        run: |
+          CHANGED_FILE=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'devops_.*\.php')
+          echo "CHANGED_FILE=${CHANGED_FILE}" >> $GITHUB_ENV
+
+      - name: Display changed file for debugging
+        run: echo "Changed file:${{ env.CHANGED_FILE }}"
+        env:
+          CHANGED_FILE: ${{ env.CHANGED_FILE }}
+
+      - name: Validate PHP file structure
+        run: |
+          if [ ! -f "${{ env.CHANGED_FILE }}" ]; then
+            echo "File ${{ env.CHANGED_FILE }} does not exist."
+            exit 1
+          fi
+          if ! grep -q "<?php" "${{ env.CHANGED_FILE }}"; then
+            echo "File ${{ env.CHANGED_FILE }} does not contain PHP opening tag."
+            exit 1
+          fi
+          if ! grep -q "?>" "${{ env.CHANGED_FILE }}"; then
+            echo "File ${{ env.CHANGED_FILE }} does not contain PHP closing tag."
+            exit 1
+          fi
+          echo "File ${{ env.CHANGED_FILE }} contains valid PHP tags."
+        env:
+          CHANGED_FILE: ${{ env.CHANGED_FILE }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: "Release ${{ github.run_number }}"
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.CHANGED_FILE }}
+          asset_name: ${{ env.CHANGED_FILE }}
+          asset_content_type: application/php
+
+      - name: Stop workflow
+        if: always()
+        run: |
+          echo "Stopping workflow after processing the changed file."
+        env:
+          CHANGED_FILE: ${{ env.CHANGED_FILE }}
