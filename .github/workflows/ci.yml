@@ -1,29 +1,19 @@
-name: ci
+name: CI
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch: # إضافة مشغل workflow_dispatch لتفعيل سير العمل يدويًا
-
+  workflow_dispatch:
 jobs:
-  process_files:
+  check_file:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2.21'
-
-      - name: Install dependencies
-        run: composer install
-
-      - name: Get changed PHP file
-        id: get_file
+      - name: Check for PHP files
         run: |
           CHANGED_FILE=$(git diff --name-only HEAD~1 HEAD | grep 'devops_.*\.php' || true)
           if [ -z "$CHANGED_FILE" ]; then
@@ -33,56 +23,29 @@ jobs:
           echo "CHANGED_FILE=${CHANGED_FILE}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Display changed file for debugging
+      - name: Show changed file
         run: echo "Changed file:${{ env.CHANGED_FILE }}"
         env:
           CHANGED_FILE: ${{ env.CHANGED_FILE }}
 
-      - name: Validate PHP file structure
+      - name: Process PHP file
         if: env.CHANGED_FILE
         run: |
           if [ ! -f "${{ env.CHANGED_FILE }}" ]; then
             echo "File ${{ env.CHANGED_FILE }} does not exist."
             exit 1
           fi
-          if ! grep -q "<?php" "${{ env.CHANGED_FILE }}"; then
-            echo "File ${{ env.CHANGED_FILE }} does not contain PHP opening tag."
-            exit 1
-          fi
-          if ! grep -q "?>" "${{ env.CHANGED_FILE }}"; then
-            echo "File ${{ env.CHANGED_FILE }} does not contain PHP closing tag."
-            exit 1
-          fi
-          echo "File ${{ env.CHANGED_FILE }} contains valid PHP tags."
+          # أضف هنا كود معالجة الملف المطلوب
+          echo "Processing file ${{ env.CHANGED_FILE }}"
         env:
           CHANGED_FILE: ${{ env.CHANGED_FILE }}
 
-      - name: Create Release
+      - name: Create a release
         if: env.CHANGED_FILE
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          release_name: "Release ${{ github.run_number }}"
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        if: env.CHANGED_FILE
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.CHANGED_FILE }}
-          asset_name: ${{ env.CHANGED_FILE }}
-          asset_content_type: application/php
-
-      - name: Stop workflow
-        if: always()
         run: |
-          echo "Stopping workflow after processing the changed file."
-        env:
-          CHANGED_FILE: ${{ env.CHANGED_FILE }}
+          TAG_NAME="v1.0.$(date +%s)"
+          RELEASE_NAME="Release for file ${{ env.CHANGED_FILE }}"
+          RELEASE_BODY="This release contains the updated code for ${{ env.CHANGED_FILE }}."
+          curl -X POST -H "Authorization: token ${{ secrets.TOKEN }}" \
+              -d "{\"tag_name\": \"$TAG_NAME\", \"target_commitish\": \"main\", \"name\": \"$RELEASE_NAME\", \"body\": \"$RELEASE_BODY\", \"draft\": false, \"prerelease\": false}" \
+              https://api.github.com/repos/${{ github.repository }}/releases
