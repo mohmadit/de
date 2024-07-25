@@ -16,7 +16,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.2.21'
 
       - name: Install dependencies
         run: composer install
@@ -27,7 +27,7 @@ jobs:
       - name: Find latest devops file
         id: find_latest_file
         run: |
-          latest_file=$(git diff-tree --no-commit-id --name-only -r $GITHUB_SHA | grep 'devops_.*\.php' | head -n 1 || true)
+          latest_file=$(git log -m -1 --name-only --pretty=format: | grep 'devops_.*\.php' | head -n 1 || true)
           if [ -z "$latest_file" ]; then
             echo "No devops_*.php file found in the latest commit."
             exit 1
