@@ -1,13 +1,12 @@
 name: ci
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - '**/devops_*.php'
+    branches:
+      - main
 
 jobs:
-  build_and_test:
+  process_files:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,18 +21,16 @@ jobs:
       - name: Install dependencies
         run: composer install
 
-      - name: Install PHPUnit
-        run: composer require --dev phpunit/phpunit
-
-      - name: Get changed file
+      - name: Get changed PHP file
         id: get_file
         run: |
-          CHANGED_FILE=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'devops_.*\.php')
+          CHANGED_FILE=$(git diff --name-only HEAD~1 HEAD | grep 'devops_.*\.php' || true)
           if [ -z "$CHANGED_FILE" ]; then
             echo "No matching PHP files changed."
             exit 0
           fi
           echo "CHANGED_FILE=${CHANGED_FILE}" >> $GITHUB_ENV
+        shell: bash
 
       - name: Display changed file for debugging
         run: echo "Changed file:${{ env.CHANGED_FILE }}"
@@ -64,7 +61,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: v1.0.${{ github.run_number }}
           release_name: "Release ${{ github.run_number }}"
@@ -75,7 +72,7 @@ jobs:
         if: env.CHANGED_FILE
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.CHANGED_FILE }}
