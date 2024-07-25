@@ -9,7 +9,7 @@ on:
       file_path:
         description: 'File path'
         required: true
-        default: 'path/to/your/actual/file.php'  # قم بتعديل هذا المسار ليعكس المسار الفعلي للملفات في مشروعك
+        default: 'project_folder/devops_task_title_task_id_code_id_publish_type.php'
 
 jobs:
   build:
