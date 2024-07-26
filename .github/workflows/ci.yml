@@ -43,13 +43,18 @@ jobs:
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
         echo "File content: $content"
-        # The following lines are commented out to ignore PHP tag checks
-        # if [[ ! "$content" =~ "<\?php" ]]; then
-        #   echo "File $file_path does not contain PHP opening tag."
-        #   exit 1
-        # fi
-        # if [[ ! "$content" =~ "\?>" ]]; then
-        #   echo "File $file_path does not contain PHP closing tag."
-        #   exit 1
-        # fi
-        echo "File $file_path processing completed."
+        
+        new_file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/new_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
+        echo "Saving content to new file: $new_file_path"
+        echo "$content" > "$new_file_path"
+        echo "New file content: $(cat "$new_file_path")"
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add ${{ github.event.inputs.project_folder }}/new_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php
+        git commit -m "Add new file with task details"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
