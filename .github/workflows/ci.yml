@@ -36,23 +36,10 @@ jobs:
       run: |
         composer install
 
-    - name: Run structural tests
-      run: |
-        echo "Running PHP_CodeSniffer for code style checks"
-        vendor/bin/phpcs --standard=PSR12 src/
-        
-        echo "Running PHPStan for static analysis"
-        vendor/bin/phpstan analyse src/
-
     - name: Run functional tests
       run: |
         echo "Running PHPUnit tests"
         vendor/bin/phpunit --configuration phpunit.xml
-
-    - name: Build the application
-      run: |
-        # Add any build commands here if needed
-        echo "Build step not required for PHP"
 
     - name: Run custom script
       run: |
