@@ -49,12 +49,5 @@ jobs:
         echo "$content" > "$new_file_path"
         echo "New file content: $(cat "$new_file_path")"
 
-    - name: Commit and push changes
-      run: |
-        git config --global user.name 'github-actions'
-        git config --global user.email 'github-actions@github.com'
-        git add ${{ github.event.inputs.project_folder }}/new_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php
-        git commit -m "Add new file with task details"
-        git push
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
