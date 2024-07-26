@@ -14,23 +14,22 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.2.21'
 
     - name: Run custom script
       run: |
-        $file_path = "$env:project_folder/devops_$($env:task_title)_$($env:task_id)_$($env:task_code_id)_$($env:publish_type).php"
-        if (-not (Test-Path $file_path)) {
-          Write-Error "File $file_path does not exist."
+        file_path="${GITHUB_WORKSPACE}/${{ env.project_folder }}/devops_${{ env.task_title }}_${{ env.task_id }}_${{ env.task_code_id }}_${{ env.publish_type }}.php"
+        if [ ! -f "$file_path" ]; then
+          echo "File $file_path does not exist."
           exit 1
-        }
-        $content = Get-Content -Path $file_path
-        if (-not ($content -match '<\?php')) {
-          Write-Error "File $file_path does not contain PHP opening tag."
+        fi
+        content=$(cat "$file_path")
+        if [[ ! "$content" =~ "<\?php" ]]; then
+          echo "File $file_path does not contain PHP opening tag."
           exit 1
-        }
-        if (-not ($content -match '\?>')) {
-          Write-Error "File $file_path does not contain PHP closing tag."
+        fi
+        if [[ ! "$content" =~ "\?>" ]]; then
+          echo "File $file_path does not contain PHP closing tag."
           exit 1
-        }
-        Write-Host "File $file_path contains valid PHP tags."
-        shell
+        fi
+        echo "File $file_path contains valid PHP tags."
