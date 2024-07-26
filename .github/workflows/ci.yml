@@ -35,11 +35,14 @@ jobs:
     - name: Run custom script
       run: |
         file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
+        echo "Checking if file exists: $file_path"
         if [ ! -f "$file_path" ]; then
           echo "File $file_path does not exist."
           exit 1
         fi
+        echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
+        echo "File content: $content"
         if [[ ! "$content" =~ "<\?php" ]]; then
           echo "File $file_path does not contain PHP opening tag."
           exit 1
