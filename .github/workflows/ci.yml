@@ -2,6 +2,22 @@ name: CI
 
 on:
   workflow_dispatch:
+    inputs:
+      project_folder:
+        description: 'Project folder'
+        required: true
+      task_title:
+        description: 'Task title'
+        required: true
+      task_id:
+        description: 'Task ID'
+        required: true
+      task_code_id:
+        description: 'Task code ID'
+        required: true
+      publish_type:
+        description: 'Publish type'
+        required: true
 
 jobs:
   build:
@@ -18,7 +34,7 @@ jobs:
 
     - name: Run custom script
       run: |
-        file_path="${GITHUB_WORKSPACE}/${{ env.project_folder }}/devops_${{ env.task_title }}_${{ env.task_id }}_${{ env.task_code_id }}_${{ env.publish_type }}.php"
+        file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         if [ ! -f "$file_path" ]; then
           echo "File $file_path does not exist."
           exit 1
