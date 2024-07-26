@@ -33,4 +33,4 @@ jobs:
           exit 1
         }
         Write-Host "File $file_path contains valid PHP tags."
-      shell: pwsh
+        shell
