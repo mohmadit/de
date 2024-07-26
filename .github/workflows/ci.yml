@@ -44,7 +44,7 @@ jobs:
         content=$(cat "$file_path")
         echo "File content: $content"
         
-        new_file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/new_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
+        new_file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Saving content to new file: $new_file_path"
         echo "$content" > "$new_file_path"
         echo "New file content: $(cat "$new_file_path")"
