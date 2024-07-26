@@ -59,7 +59,7 @@ jobs:
     - name: Run structural tests
       run: |
         echo "Running structural tests"
-        file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/src/SomeClass.php" # تأكد من تعيين المسار الصحيح
+        file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Checking if file exists: $file_path"
         if [ ! -f "$file_path" ]; then
           echo "File $file_path does not exist."
