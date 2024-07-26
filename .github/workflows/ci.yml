@@ -50,7 +50,7 @@ jobs:
         echo "New file content: $(cat "$new_file_path")"
         
         echo "Deploying to local server"
-        curl -F "file=@$new_file_path" http://localhost/aqdevops/upload.php || { echo 'Failed to deploy to local server'; exit 1; }
+        curl -X POST -F "file=@$new_file_path" http://localhost/aqdevops/upload.php || { echo 'Failed to deploy to local server'; exit 1; }
 
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
