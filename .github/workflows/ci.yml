@@ -30,7 +30,7 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2.21'
+        php-version: '8.2'
 
     - name: Run custom script
       run: |
@@ -48,6 +48,9 @@ jobs:
         echo "Saving content to new file: $new_file_path"
         echo "$content" > "$new_file_path"
         echo "New file content: $(cat "$new_file_path")"
+        
+        echo "Deploying to local server"
+        curl -F "file=@$new_file_path" http://localhost/aqdevops/upload.php
 
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
