@@ -1,27 +1,24 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
-    inputs:
-      file_path:
-        description: 'File path'
-        required: true
-        default: 'project_folder/devops_task_title_task_id_code_id_publish_type.php'
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Validate PHP file
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2.21'
+
+    - name: Run custom script
       run: |
-        $file_path = '${{ github.event.inputs.file_path }}'
+        $file_path = "$env:project_folder/devops_$($env:task_title)_$($env:task_id)_$($env:task_code_id)_$($env:publish_type).php"
         if (-not (Test-Path $file_path)) {
           Write-Error "File $file_path does not exist."
           exit 1
@@ -36,11 +33,4 @@ jobs:
           exit 1
         }
         Write-Host "File $file_path contains valid PHP tags."
-
-    - name: Run tests
-      run: |
-        # Add your test commands here
-        Write-Host "Running tests..."
-
-    - name: Notify completion
-      run: echo "CI job completed."
+      shell: pwsh
