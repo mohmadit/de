@@ -1,10 +1,14 @@
-<?php
-require 'config.php';
+<?phpire 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_POST['task_id']) && isset($_POST['code'])) {
 $task_id = $_POST['task_id'];
-$code = htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8');
+$code = htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF45
+                         4
+                         
+                         4
+                         
+                         [[-8');
 
 $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
 if ($stmt) {
