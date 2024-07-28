@@ -1,6 +1,6 @@
 <?php
 require 'config.php';
-include 'config.php';
+
 
 $query = "SELECT * FROM projects";
 $result = mysqli_query($conn, $query);
