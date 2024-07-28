@@ -1,5 +1,4 @@
-<?php
-require 'config.php';
+<?phpire 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_POST['task_id']) && isset($_POST['code'])) {
