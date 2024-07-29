@@ -132,7 +132,7 @@ jobs:
         echo "Deploying to local server"
         response=$(curl -X POST -F "file=@$file_path" https://cc20-31-9-218-126.ngrok-free.app/aqdevops/upload.php)
         echo "Server response: $response"
-        if [[ "$response" != *"Success"* ]]; then
+        if [[ "$response" != *"File uploaded successfully."* ]]; then
           echo 'Failed to deploy to local server'
           exit 1
         fi
