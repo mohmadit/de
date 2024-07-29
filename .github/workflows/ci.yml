@@ -128,8 +128,15 @@ jobs:
 
     - name: Deploy to server
       run: |
+        file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Deploying to local server"
-        curl -X POST -F "file=@${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php" https://cc20-31-9-218-126.ngrok-free.app/aqdevops/upload.php || { echo 'Failed to deploy to local server'; exit 1; }
+        response=$(curl -X POST -F "file=@$file_path" https://cc20-31-9-218-126.ngrok-free.app/aqdevops/upload.php)
+        echo "Server response: $response"
+        if [[ "$response" != *"Success"* ]]; then
+          echo 'Failed to deploy to local server'
+          exit 1
+        fi
+        echo "File deployed successfully to: $file_path"
 
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
