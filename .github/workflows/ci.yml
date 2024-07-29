@@ -57,6 +57,7 @@ jobs:
       run: composer install
 
     - name: Run structural tests
+      id: structural_tests
       run: |
         echo "Running structural tests"
         file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
@@ -76,6 +77,7 @@ jobs:
           exit 1
         fi
         echo "Structural tests passed."
+        echo "::set-output name=file_path::$file_path"
 
   run_custom_script:
     runs-on: ubuntu-latest
@@ -109,6 +111,7 @@ jobs:
         echo "Saving content to new file: $new_file_path"
         echo "$content" > "$new_file_path"
         echo "New file content: $(cat "$new_file_path")"
+        echo "::set-output name=file_path::$new_file_path"
 
   deploy_to_server:
     runs-on: ubuntu-latest
@@ -129,7 +132,6 @@ jobs:
     - name: Deploy to server
       run: |
         echo "Deploying to local server"
-        curl -X POST -F "file=@${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php" https://cc20-31-9-218-126.ngrok-free.app/aqdevops/upload.php || { echo 'Failed to deploy to local server'; exit 1; }
-
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        file_path="${{ needs.run_custom_script.outputs.file_path }}"
+        echo "Deploying file: $file_path"
+        curl -X POST -F "file=@$file_path" https://cc20-31-9-218-126.ngrok-free.app/aqdevops/upload.php || { echo 'Failed to deploy to local server'; exit 1; }
