@@ -1,23 +1,39 @@
 <?php
 require 'config.php';
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (isset($_POST['task_id']) && isset($_POST['code'])) {
+$task_id = $_POST['task_id'];
+$code = htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8');
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+$stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
+if ($stmt) {
+$stmt->bind_param("is", $task_id, $code);
 
-$id = intval($_GET['id']);
-$sql = "SELECT * FROM tasks WHERE id = $id";
-$result = $conn->query($sql);
-
-$data = [];
-if ($result->num_rows > 0) {
-    $data = $result->fetch_assoc();
+if ($stmt->execute()) {
+$new_id = $stmt->insert_id;
+$created_at = date('Y-m-d H:i:s');
+$updated_at = $created_at;
+echo "<tr id='code_$new_id'>
+<td>$new_id</td>
+<td>$code</td>
+<td>$created_at</td>
+<td>$updated_at</td>
+<td><button class='btn btn-danger' onclick='deleteCode($new_id)'>Delete</button></td>
+</tr>";
 } else {
-    echo "0 results";
+echo "Error adding code: " . $stmt->error;
 }
-$conn->close();
+$stmt->close();
+} else {
+echo "Error preparing statement: " . $conn->error;
+}
+} else {
+echo "Missing task_id or code in POST data";
+}
+} else {
+echo "Invalid request method";
+}
 
-echo json_encode($data);
+$conn->close();
 ?>
