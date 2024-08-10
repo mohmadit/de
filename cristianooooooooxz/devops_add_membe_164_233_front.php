@@ -1,4 +1,4 @@
-<?php
+<?phpgfchvhbj,n.
 session_start()
 require 'config.php'
 
