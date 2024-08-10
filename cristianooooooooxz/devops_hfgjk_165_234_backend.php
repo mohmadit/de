@@ -1,39 +1,35 @@
 <?php
+session_start();
 require 'config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-if (isset($_POST['task_id']) && isset($_POST['code'])) {
-$task_id = $_POST['task_id'];
-$code = htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8');
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+$email = $_POST['email'];
+$password = $_POST['password'];
+$role = $_POST['role'];
+$name = $_POST['name'];
 
-$stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
-if ($stmt) {
-$stmt->bind_param("is", $task_id, $code);
+$sql = "SELECT id, name, password, role, first_login FROM users WHERE email = ? AND role = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $email, $role);
+$stmt->execute();
+$stmt->store_result();
+$stmt->bind_result($id, $name_db, $hashed_password, $role_db, $first_login);
+$stmt->fetch();
 
-if ($stmt->execute()) {
-$new_id = $stmt->insert_id;
-$created_at = date('Y-m-d H:i:s');
-$updated_at = $created_at;
-echo "<tr id='code_$new_id'>
-<td>$new_id</td>
-<td>$code</td>
-<td>$created_at</td>
-<td>$updated_at</td>
-<td><button class='btn btn-danger' onclick='deleteCode($new_id)'>Delete</button></td>
-</tr>";
+if ($stmt->num_rows > 0 && password_verify($password, $hashed_password)) {
+$_SESSION['user_id'] = $id;
+$_SESSION['user_name'] = $name_db;
+$_SESSION['user_role'] = $role_db;
+
+if ($first_login) {
+header("Location: change_password.php");
 } else {
-echo "Error adding code: " . $stmt->error;
+header("Location: dashboard.php");
 }
+} else {
+$error = "Invalid email, password or role";
+}
+
 $stmt->close();
-} else {
-echo "Error preparing statement: " . $conn->error;
 }
-} else {
-echo "Missing task_id or code in POST data";
-}
-} else {
-echo "Invalid request method";
-}
-
-$conn->close();
 ?>
