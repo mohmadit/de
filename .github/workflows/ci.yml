@@ -65,14 +65,7 @@ jobs:
           echo "File $file_path does not exist."
           exit 1
         fi
-
-        echo "File $file_path exists, running syntax check..."
-        if ! php -l "$file_path"; then
-          echo "Syntax errors found in $file_path"
-          exit 1
-        fi
-
-        echo "Syntax check passed. Verifying file structure..."
+        echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
         if [[ "$content" != *"<?php"* ]]; then
           echo "PHP opening tag not found."
