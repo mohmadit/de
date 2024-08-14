@@ -74,17 +74,17 @@ jobs:
           exit 1
         fi
 
-        # التحقق مما إذا كان الملف PHP أو HTML
+     
         if [[ "$content" == *"<?php"* ]]; then
           echo "Detected PHP file."
 
-          # التحقق من صحة بناء الجملة
+         
           if ! php -l "$file_path"; then
             echo "PHP syntax check failed."
             exit 1
           fi
 
-          # التحقق من وجود متغيرات معرفة
+       
           if ! grep -q "\$[a-zA-Z_][a-zA-Z0-9_]*\s*=" "$file_path"; then
             echo "No variables defined."
             exit 1
@@ -95,7 +95,7 @@ jobs:
         elif [[ "$content" == *"<html"* ]]; then
           echo "Detected HTML file."
           
-          # التحقق من وجود وسوم HTML الأساسية
+     
           if [[ "$content" != *"<html"* || "$content" != *"</html>"* || "$content" != *"<head"* || "$content" != *"</head>"* || "$content" != *"<body"* || "$content" != *"</body>"* ]]; then
             echo "HTML structural issues found."
             exit 1
