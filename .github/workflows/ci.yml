@@ -65,6 +65,7 @@ jobs:
           echo "File $file_path does not exist."
           exit 1
         fi
+
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
 
@@ -79,6 +80,15 @@ jobs:
           fi
         else
           echo "PHP tags found, allowing structural tests to pass."
+        fi
+
+        # Check PHP syntax
+        echo "Running PHP lint check..."
+        if ! php -l "$file_path"; then
+          echo "PHP syntax check failed."
+          exit 1
+        else
+          echo "PHP syntax check passed."
         fi
 
   run_custom_script:
