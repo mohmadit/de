@@ -73,7 +73,16 @@ jobs:
         if [[ "$content" != *"<?php"* ]] || [[ "$content" != *"?>"* ]]; then
           echo "PHP tags not found. Checking for HTML tags..."
           if [[ "$content" == *"<html"* ]] || [[ "$content" == *"<body"* ]]; then
-            echo "HTML tags found, allowing structural tests to pass."
+            echo "HTML tags found, checking HTML structure..."
+
+            # Check HTML structure using tidy
+            echo "$content" | tidy -errors -quiet
+            if [ $? -ne 0 ]; then
+              echo "HTML structure check failed."
+              exit 1
+            else
+              echo "HTML structure is valid."
+            fi
           else
             echo "Neither PHP nor HTML tags found."
             exit 1
