@@ -12,40 +12,44 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// استلام البيانات من النموذج
-$room_number = $_POST['room_number'];
-$booking_date = $_POST['booking_date'];
+// التحقق من استقبال البيانات من النموذج
+if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
+    $room_number = $_POST['room_number'];
+    $booking_date = $_POST['booking_date'];
 
-// البحث عن الغرفة
-$sql = "SELECT id FROM rooms WHERE room_number = ? AND available = TRUE";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $room_number);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows > 0) {
-    // الحصول على معرف الغرفة
-    $room = $result->fetch_assoc();
-    $room_id = $room['id'];
-
-    // إدخال الحجز
-    $sql = "INSERT INTO bookings (room_id, booking_date) VALUES (?, ?)";
+    // البحث عن الغرفة
+    $sql = "SELECT id FROM rooms WHERE room_number = ? AND available = TRUE";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("is", $room_id, $booking_date);
-    
-    if ($stmt->execute()) {
-        // تحديث حالة الغرفة لتصبح غير متاحة
-        $sql = "UPDATE rooms SET available = FALSE WHERE id = ?";
+    $stmt->bind_param("s", $room_number);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        // الحصول على معرف الغرفة
+        $room = $result->fetch_assoc();
+        $room_id = $room['id'];
+
+        // إدخال الحجز
+        $sql = "INSERT INTO bookings (room_id, booking_date) VALUES (?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $room_id);
-        $stmt->execute();
+        $stmt->bind_param("is", $room_id, $booking_date);
         
-        echo "Booking successful!";
+        if ($stmt->execute()) {
+            // تحديث حالة الغرفة لتصبح غير متاحة
+            $sql = "UPDATE rooms SET available = FALSE WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $room_id);
+            $stmt->execute();
+            
+            echo "Booking successful!";
+        } else {
+            echo "Error: " . $stmt->error;
+        }
     } else {
-        echo "Error: " . $stmt->error;
+        echo "Sorry, the room is not available or does not exist.";
     }
 } else {
-    echo "Sorry, the room is not available or does not exist.";
+    echo "Please provide both room number and booking date.";
 }
 
 // إغلاق الاتصال
