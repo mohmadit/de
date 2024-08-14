@@ -12,8 +12,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// التحقق من استقبال البيانات من النموذج
+// التحقق من وجود القيم في $_POST قبل الوصول إليها
 if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
+    // استلام البيانات من النموذج
     $room_number = $_POST['room_number'];
     $booking_date = $_POST['booking_date'];
 
@@ -33,14 +34,14 @@ if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
         $sql = "INSERT INTO bookings (room_id, booking_date) VALUES (?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("is", $room_id, $booking_date);
-        
+
         if ($stmt->execute()) {
             // تحديث حالة الغرفة لتصبح غير متاحة
             $sql = "UPDATE rooms SET available = FALSE WHERE id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("i", $room_id);
             $stmt->execute();
-            
+
             echo "Booking successful!";
         } else {
             echo "Error: " . $stmt->error;
@@ -48,11 +49,12 @@ if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
     } else {
         echo "Sorry, the room is not available or does not exist.";
     }
+
+    // إغلاق الاتصال
+    $stmt->close();
 } else {
     echo "Please provide both room number and booking date.";
 }
 
-// إغلاق الاتصال
-$stmt->close();
 $conn->close();
 ?>
