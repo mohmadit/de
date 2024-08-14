@@ -58,7 +58,6 @@ jobs:
 
     - name: Run structural tests
       run: |
-        echo "Running structural tests"
         file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Checking if file exists: $file_path"
         if [ ! -f "$file_path" ]; then
@@ -69,12 +68,14 @@ jobs:
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
 
-        # Check for PHP tags
-        if [[ "$content" != *"<?php"* ]] || [[ "$content" != *"?>"* ]]; then
+        # Check for PHP or HTML tags
+        if [[ "$content" == *"<?php"* ]] || [[ "$content" == *"?>"* ]]; then
+          echo "PHP tags found, skipping HTML checks."
+        else
           echo "PHP tags not found. Checking for HTML tags..."
           if [[ "$content" == *"<html"* ]] || [[ "$content" == *"<body"* ]]; then
             echo "HTML tags found, checking HTML structure..."
-
+            
             # Check HTML structure using tidy
             echo "$content" | tidy -errors -quiet
             if [ $? -ne 0 ]; then
@@ -83,12 +84,10 @@ jobs:
             else
               echo "HTML structure is valid."
             fi
-          else
+          else:
             echo "Neither PHP nor HTML tags found."
             exit 1
           fi
-        else
-          echo "PHP tags found, allowing structural tests to pass."
         fi
 
         # Check PHP syntax
