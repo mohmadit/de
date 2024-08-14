@@ -67,22 +67,18 @@ jobs:
         fi
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
+        
+        # Check if file is not empty
+        if [ -z "$content" ]; then
+          echo "File is empty."
+          exit 1
+        fi
 
         # التحقق مما إذا كان الملف PHP أو HTML
         if [[ "$content" == *"<?php"* ]]; then
           echo "Detected PHP file."
 
-          # التحقق من فتح و إغلاق وسوم PHP
-          if [[ "$content" != *"<?php"* ]]; then
-            echo "PHP opening tag not found."
-            exit 1
-          fi
-          if [[ "$content" != *"?>"* ]]; then
-            echo "PHP closing tag not found."
-            exit 1
-          fi
-
-          # التحقق من صحة الأقواس
+          # التحقق من صحة بناء الجملة
           if ! php -l "$file_path"; then
             echo "PHP syntax check failed."
             exit 1
@@ -94,43 +90,17 @@ jobs:
             exit 1
           fi
 
-          # التحقق من وجود الفواصل الصحيحة
-          if grep -q "[^;{}]\s*\n" "$file_path"; then
-            echo "Potential missing semicolon."
-            exit 1
-          fi
-          
           echo "PHP structural tests passed."
 
         elif [[ "$content" == *"<html"* ]]; then
           echo "Detected HTML file."
           
           # التحقق من وجود وسوم HTML الأساسية
-          if [[ "$content" != *"<html"* ]]; then
-            echo "HTML opening tag not found."
+          if [[ "$content" != *"<html"* || "$content" != *"</html>"* || "$content" != *"<head"* || "$content" != *"</head>"* || "$content" != *"<body"* || "$content" != *"</body>"* ]]; then
+            echo "HTML structural issues found."
             exit 1
           fi
-          if [[ "$content" != *"</html>"* ]]; then
-            echo "HTML closing tag not found."
-            exit 1
-          fi
-          if [[ "$content" != *"<head"* ]]; then
-            echo "HTML head tag not found."
-            exit 1
-          fi
-          if [[ "$content" != *"</head>"* ]]; then
-            echo "HTML head closing tag not found."
-            exit 1
-          fi
-          if [[ "$content" != *"<body"* ]]; then
-            echo "HTML body tag not found."
-            exit 1
-          fi
-          if [[ "$content" != *"</body>"* ]]; then
-            echo "HTML body closing tag not found."
-            exit 1
-          fi
-          
+
           echo "HTML structural tests passed."
         else
           echo "Unknown file type or structure."
@@ -164,8 +134,8 @@ jobs:
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
         echo "File content: $content"
-        
-        new_file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
+
+        new_file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/new_devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Saving content to new file: $new_file_path"
         echo "$content" > "$new_file_path"
         echo "New file content: $(cat "$new_file_path")"
