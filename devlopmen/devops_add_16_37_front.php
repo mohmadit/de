@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html
+<html lang="en"
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.
     <title>Hotel Room Booking</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -39,7 +39,7 @@
     <script>
         $(document).ready(function() {
             $('#booking-form').on('submit', function(event) {
-                event.preventDefault(); // منع إرسال النموذج بالطريقة التقليدية
+                event.preventDefault(); 
                 
                 $.ajax({
                     url: 'process_booking.php',
@@ -50,10 +50,10 @@
                         $('#response-message').addClass(response.includes('successful') ? 'alert-success' : 'alert-danger');
                         $('#response-message').text(response).show();
                         
-                        // إعادة توجيه المستخدم إلى الصفحة الرئيسية بعد عرض الرسالة
+                        
                         setTimeout(function() {
-                            window.location.href = 'index.html'; // تأكد من تغيير 'index.html' إلى الصفحة الرئيسية الخاصة بك
-                        }, 3000); // الانتظار 3 ثوانٍ قبل إعادة التوجيه
+                            window.location.href = 'index.html';   
+                        }, 3000);     
                     }
                 });
             });
