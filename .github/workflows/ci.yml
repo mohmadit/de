@@ -38,7 +38,7 @@ jobs:
     - name: Run unit tests (Optional)
       run: |
         echo "Running PHPUnit tests"
-        vendor/bin/phpunit --configuration phpunit.xml || true # لا تفشل إذا فشلت الاختبارات الوظيفية
+        vendor/bin/phpunit --configuration phpunit.xml || true
 
   run_structural_tests:
     runs-on: ubuntu-latest
@@ -67,36 +67,75 @@ jobs:
         fi
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
-        
-        # التحقق من فتح و إغلاق وسوم PHP
-        if [[ "$content" != *"<?php"* ]]; then
-          echo "PHP opening tag not found."
+
+        # التحقق مما إذا كان الملف PHP أو HTML
+        if [[ "$content" == *"<?php"* ]]; then
+          echo "Detected PHP file."
+
+          # التحقق من فتح و إغلاق وسوم PHP
+          if [[ "$content" != *"<?php"* ]]; then
+            echo "PHP opening tag not found."
+            exit 1
+          fi
+          if [[ "$content" != *"?>"* ]]; then
+            echo "PHP closing tag not found."
+            exit 1
+          fi
+
+          # التحقق من صحة الأقواس
+          if ! php -l "$file_path"; then
+            echo "PHP syntax check failed."
+            exit 1
+          fi
+
+          # التحقق من وجود متغيرات معرفة
+          if ! grep -q "\$[a-zA-Z_][a-zA-Z0-9_]*\s*=" "$file_path"; then
+            echo "No variables defined."
+            exit 1
+          fi
+
+          # التحقق من وجود الفواصل الصحيحة
+          if grep -q "[^;{}]\s*\n" "$file_path"; then
+            echo "Potential missing semicolon."
+            exit 1
+          fi
+          
+          echo "PHP structural tests passed."
+
+        elif [[ "$content" == *"<html"* ]]; then
+          echo "Detected HTML file."
+          
+          # التحقق من وجود وسوم HTML الأساسية
+          if [[ "$content" != *"<html"* ]]; then
+            echo "HTML opening tag not found."
+            exit 1
+          fi
+          if [[ "$content" != *"</html>"* ]]; then
+            echo "HTML closing tag not found."
+            exit 1
+          fi
+          if [[ "$content" != *"<head"* ]]; then
+            echo "HTML head tag not found."
+            exit 1
+          fi
+          if [[ "$content" != *"</head>"* ]]; then
+            echo "HTML head closing tag not found."
+            exit 1
+          fi
+          if [[ "$content" != *"<body"* ]]; then
+            echo "HTML body tag not found."
+            exit 1
+          fi
+          if [[ "$content" != *"</body>"* ]]; then
+            echo "HTML body closing tag not found."
+            exit 1
+          fi
+          
+          echo "HTML structural tests passed."
+        else
+          echo "Unknown file type or structure."
           exit 1
         fi
-        if [[ "$content" != *"?>"* ]]; then
-          echo "PHP closing tag not found."
-          exit 1
-        fi
-        
-        # التحقق من صحة الأقواس
-        if ! php -l "$file_path"; then
-          echo "PHP syntax check failed."
-          exit 1
-        fi
-        
-        # التحقق من وجود متغيرات معرفة
-        if ! grep -q "\$[a-zA-Z_][a-zA-Z0-9_]*\s*=" "$file_path"; then
-          echo "No variables defined."
-          exit 1
-        fi
-        
-        # التحقق من وجود الفواصل الصحيحة
-        if grep -q "[^;{}]\s*\n" "$file_path"; then
-          echo "Potential missing semicolon."
-          exit 1
-        fi
-        
-        echo "Structural tests passed."
 
   run_custom_script:
     runs-on: ubuntu-latest
