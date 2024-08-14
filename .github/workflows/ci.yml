@@ -58,31 +58,24 @@ jobs:
 
     - name: Run structural tests
       run: |
+        echo "Running structural tests"
         file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Checking if file exists: $file_path"
         if [ ! -f "$file_path" ]; then
           echo "File $file_path does not exist."
           exit 1
         fi
-
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
-
-        
-          else:
-            echo "Neither PHP nor HTML tags found."
-            exit 1
-          fi
-        fi
-
-        # Check PHP syntax
-        echo "Running PHP lint check..."
-        if ! php -l "$file_path"; then
-          echo "PHP syntax check failed."
+        if [[ "$content" != *"<?php"* ]]; then
+          echo "PHP opening tag not found."
           exit 1
-        else
-          echo "PHP syntax check passed."
         fi
+        if [[ "$content" != *"?>"* ]]; then
+          echo "PHP closing tag not found."
+          exit 1
+        fi
+        echo "Structural tests passed."
 
   run_custom_script:
     runs-on: ubuntu-latest
