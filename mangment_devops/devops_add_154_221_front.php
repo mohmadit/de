@@ -1,62 +1,38 @@
-<!DOCTYPE html
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"
-<title>Hotel Room Booking</title>
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="styleshee
-<style>
-body {
-background-color: #f8f9fa;
-}
-.container {
-margin-top: 50px;
-}
-#response-message {
-display: none;
-}
-</style>
-</head>
-<body>
-<div class="container">
-<h2>Hotel Room Booking</h2>
-<form id="booking-form">
-<div class="form-group">
-<label for="room_number">Room Number</label>
-<input type="text" class="form-control" id="room_number" name="room_number" required>
-</div>
-<div class="form-group">
-<label for="booking_date">Booking Date</label>
-<input type="date" class="form-control" id="booking_date" name="booking_date" required>
-</div>
-<button type="submit" class="btn btn-primary">Book Room</button>
-</form>
-<div id="response-message" class="mt-3 alert"></div>
-</div>
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-$(document).ready(function() {
-$('#booking-form').on('submit', function(event) {
-event.preventDefault();
-$.ajax({
-url: 'devops_process_add_request_171_239_backend.php',
-type: 'POST',
-data: $(this).serialize(),
-success: function(response) {
-$('#response-message').removeClass('alert-success alert-danger');
-$('#response-message').addClass(response.includes('successful') ? 'alert-success' : 'alert-danger');
-$('#response-message').text(response).show();
+<?php
+require 'config.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['task_id']) && isset($_POST['code'])) {
+        $task_id = $_POST['task_id'];
+        $code = htmlspecialchars($_POST['code'], ENT_QUOTES, 'UTF-8');
 
-setTimeout(function() {
-window.location.href = 'devops_add_requestt_172_240_front.php'
-}, 3000);
+        $stmt = $conn->prepare("INSERT INTO codes (task_id, code) VALUES (?, ?)");
+        if ($stmt) {
+            $stmt->bind_param("is", $task_id, $code);
+
+            if ($stmt->execute()) {
+                $new_id = $stmt->insert_id;
+                $created_at = date('Y-m-d H:i:s');
+                $updated_at = $created_at;
+                echo "<tr id='code_$new_id'>
+                        <td>$new_id</td>
+                        <td>$code</td>
+                        <td>$created_at</td>
+                        <td>$updated_at</td>
+                        <td><button class='btn btn-danger' onclick='deleteCode($new_id)'>Delete</button></td>
+                      </tr>";
+            } else {
+                echo "Error adding code: " . $stmt->error;
+            }
+            $stmt->close();
+        } else {
+            echo "Error preparing statement: " . $conn->error;
+        }
+    } else {
+        echo "Missing task_id or code in POST data";
+    }
+} else {
+    echo "Invalid request method";
 }
-});
-});
-});
-</script>
-</body>
-</html>
+
+$conn->close();
