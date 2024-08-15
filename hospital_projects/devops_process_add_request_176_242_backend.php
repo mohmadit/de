@@ -1,11 +1,11 @@
 <?php
-$servername = "localhost";
+$servername = "localhost"
 $username = "root";
 $password = "";
 $dbname = "hotel_booking";
 
 // إنشاء الاتصال بقاعدة البيانات
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname
 
 // التحقق من الاتصال
 if ($conn->connect_error) {
