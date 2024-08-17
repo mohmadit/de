@@ -45,7 +45,6 @@ echo "Error: " . $stmt->error;
 } else {
 echo "Sorry, the room is not available or does not exist.";
 }
-إ
 $stmt->close();
 } else {
 echo "Please provide both room number and booking date.";
