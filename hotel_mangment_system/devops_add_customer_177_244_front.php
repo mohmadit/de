@@ -1,62 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hotel Room Booking</title>
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body {
-background-color: #f8f9fa;
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "hotel_booking";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+die("Connection failed: " . $conn->connect_error);
 }
-.container {
-margin-top: 50px;
-}
-#response-message {
-display: none;
-}
-</style>
-</head>
-<body>
-<div class="container">
-<h2>Hotel Room Booking</h2>
-<form id="booking-form">
-<div class="form-group">
-<label for="room_number">Room Number</label>
-<input type="text" class="form-control" id="room_number" name="room_number" required>
-</div>
-<div class="form-group">
-<label for="booking_date">Booking Date</label>
-<input type="date" class="form-control" id="booking_date" name="booking_date" required>
-</div>
-<button type="submit" class="btn btn-primary">Book Room</button>
-</form>
-<div id="response-message" class="mt-3 alert"></div>
-</div>
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-$(document).ready(function() {
-$('#booking-form').on('submit', function(event) {
-event.preventDefault();
-$.ajax({
-url: 'devops_process_add_request_171_239_backend.php',
-type: 'POST',
-data: $(this).serialize(),
-success: function(response) {
-$('#response-message').removeClass('alert-success alert-danger');
-$('#response-message').addClass(response.includes('successful') ? 'alert-success' : 'alert-danger');
-$('#response-message').text(response).show();
+
+if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
+$room_number = $_POST['room_number'];
+$booking_date = $_POST['booking_date'];
 
 
-setTimeout(function() {
-window.location.href = 'devops_add_requestt_172_240_front.php';
-}, 3000);
+$sql = "SELECT id FROM rooms WHERE room_number = ? AND available = TRUE";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $room_number);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+
+$room = $result->fetch_assoc();
+$room_id = $room['id'];
+
+
+$sql = "INSERT INTO bookings (room_id, booking_date) VALUES (?, ?)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("is", $room_id, $booking_date);
+
+if ($stmt->execute()) {
+
+$sql = "UPDATE rooms SET available = FALSE WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $room_id);
+$stmt->execute();
+
+echo "Booking successful!";
+} else {
+echo "Error: " . $stmt->error;
 }
-});
-});
-});
-</script>
-</body>
-</html>
+} else {
+echo "Sorry, the room is not available or does not exist.";
+}
+إ
+$stmt->close();
+} else {
+echo "Please provide both room number and booking date.";
+}
+
+$conn->close();
+?>
