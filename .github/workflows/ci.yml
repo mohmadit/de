@@ -78,7 +78,7 @@ jobs:
         # Check if the file is an HTML/CSS file
         elif [[ "$content" == *"<html"* || "$content" == *"<div"* || "$content" == *"<head"* || "$content" == *"<style"* ]]; then
           echo "HTML/CSS structure detected and considered valid."
-        else:
+        else
           echo "Unknown file structure. Neither PHP nor HTML/CSS detected."
           exit 1
         fi
