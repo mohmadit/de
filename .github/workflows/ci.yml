@@ -65,23 +65,36 @@ jobs:
           echo "File $file_path does not exist."
           exit 1
         fi
-        echo "File $file_path exists, reading content..."
-        content=$(cat "$file_path")
         
+        echo "File $file_path exists, checking content..."
+        content=$(cat "$file_path")
+
         # Check if the file is a PHP file
         if [[ "$content" == *"<?php"* ]]; then
-          if [[ "$content" != *"?>"* ]]; then
-            echo "PHP closing tag not found."
+          echo "PHP file detected, checking syntax..."
+          php -l "$file_path"
+          if [ $? -ne 0 ]; then
+            echo "PHP syntax errors found."
             exit 1
           fi
-          echo "PHP file structure is valid."
+          echo "PHP syntax is valid."
+        
         # Check if the file is an HTML/CSS file
         elif [[ "$content" == *"<html"* || "$content" == *"<div"* || "$content" == *"<head"* || "$content" == *"<style"* ]]; then
-          echo "HTML/CSS structure detected and considered valid."
+          echo "HTML/CSS structure detected, checking syntax..."
+          # Use xmllint to validate the HTML structure
+          xmllint --noout "$file_path" --html
+          if [ $? -ne 0 ]; then
+            echo "HTML structure errors found."
+            exit 1
+          fi
+          echo "HTML structure is valid."
+        
         else
           echo "Unknown file structure. Neither PHP nor HTML/CSS detected."
           exit 1
         fi
+
         echo "Structural tests passed."
 
   run_custom_script:
