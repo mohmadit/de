@@ -1,55 +1,60 @@
 <?php
-$servername = "localhost
-$username = "root";
-$password = "";
-$dbname = "hotel_booking";
+$host = "localhost";
+$db = "khotel";
+$user = "root";
+$pass = "";
 
-$conn = new mysqli($servername, $username, $password, $dbn
-
-if ($conn->connect_error) {
-die("Connection failed: " . $conn->connect_error);
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo "Connection failed: " . $e->getMessage();
+    exit();
 }
 
-if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
-$room_number = $_POST['room_number'];
-$booking_date = $_POST['booking_date'];
+// Ensure the server request method is defined and the form is submitted via POST
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST') {
+    $name = isset($_POST['name']) ? $_POST['name'] : null;
+    $email = isset($_POST['email']) ? $_POST['email'] : null;
+    $check_in = isset($_POST['check_in']) ? $_POST['check_in'] : null;
+    $check_out = isset($_POST['check_out']) ? $_POST['check_out'] : null;
+    $persons = isset($_POST['persons']) ? $_POST['persons'] : null;
+    $rooms = isset($_POST['rooms']) ? $_POST['rooms'] : null;
+    $room_type = isset($_POST['room_type']) ? $_POST['room_type'] : null;
+    $room_number = rand(1, 100);
 
+    if ($name && $email && $check_in && $check_out && $persons && $rooms && $room_type) {
+        $query = $conn->prepare("SELECT * FROM reservations WHERE room_number = :room_number");
+        $query->bindParam(':room_number', $room_number);
+        $query->execute();
 
-$sql = "SELECT id FROM rooms WHERE room_number = ? AND available = TRUE";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $room_number);
-$stmt->execute();
-$result = $stmt->get_result();
+        if ($query->rowCount() > 0) {
+            echo "Room number $room_number is already booked!";
+        } else {
+            $insert = $conn->prepare("
+                INSERT INTO reservations (name, email, check_in, check_out, persons, rooms, room_type, room_number)
+                VALUES (:name, :email, :check_in, :check_out, :persons, :rooms, :room_type, :room_number)
+            ");
 
-if ($result->num_rows > 0) {
+            $insert->bindParam(':name', $name);
+            $insert->bindParam(':email', $email);
+            $insert->bindParam(':check_in', $check_in);
+            $insert->bindParam(':check_out', $check_out);
+            $insert->bindParam(':persons', $persons);
+            $insert->bindParam(':rooms', $rooms);
+            $insert->bindParam(':room_type', $room_type);
+            $insert->bindParam(':room_number', $room_number);
 
-$room = $result->fetch_assoc();
-$room_id = $room['id'];
-
-
-$sql = "INSERT INTO bookings (room_id, booking_date) VALUES (?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $room_id, $booking_date);
-
-if ($stmt->execute()) {
-
-$sql = "UPDATE rooms SET available = FALSE WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $room_id);
-$stmt->execute();
-
-echo "Booking successful!";
+            if ($insert->execute()) {
+                echo "Booking successful! Your room number is: $room_number";
+            } else {
+                echo "An error occurred during the booking process. Please try again.";
+            }
+        }
+    } else {
+        echo "Please fill in all the fields.";
+    }
 } else {
-echo "Error: " . $stmt->error;
+    echo "No form data submitted.";
 }
-} else {
-echo "Sorry, the room is not available or does not exist.";
-}
-إ
-$stmt->close();
-} else {
-echo "Please provide both room number and booking date.";
-}
-
-$conn->close();
 ?>
