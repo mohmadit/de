@@ -4,80 +4,51 @@ $username = "root";
 $password = "";
 $dbname = "khotel";
 
-// إنشاء اتصال بقاعدة البيانات
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// التحقق من اتصال قاعدة البيانات
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo "Connection failed: " . $e->getMessage();
+    exit();
 }
 
-// التحقق من وجود كل البيانات المطلوبة
-if (
-    !isset($_POST['name']) || 
-    !isset($_POST['email']) || 
-    !isset($_POST['check_in']) || 
-    !isset($_POST['check_out']) || 
-    !isset($_POST['persons']) || 
-    !isset($_POST['rooms']) || 
-    !isset($_POST['room_type'])
-) {
-    die("Please fill in all required fields.");
-}
-
+// Get the form data
 $name = $_POST['name'];
 $email = $_POST['email'];
-$checkIn = $_POST['check_in'];
-$checkOut = $_POST['check_out'];
+$check_in = $_POST['check_in'];
+$check_out = $_POST['check_out'];
 $persons = $_POST['persons'];
-$rooms = (int)$_POST['rooms'];
-$roomType = $_POST['room_type'];
+$rooms = $_POST['rooms'];
+$room_type = $_POST['room_type'];
+$room_number = rand(1, 100); // Randomly assign a room number
 
-// استعلام للتحقق من توافر الغرف
-$query = "SELECT id FROM rooms WHERE room_type = ? AND available = 1 LIMIT ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param('si', $roomType, $rooms);
-$stmt->execute();
-$stmt->store_result();
+// Check if the room is already booked
+$query = $conn->prepare("SELECT * FROM reservations WHERE room_number = :room_number");
+$query->bindParam(':room_number', $room_number);
+$query->execute();
 
-if ($stmt->num_rows >= $rooms) {
-    // بدء المعاملة لضمان الاتساق في قاعدة البيانات
-    $conn->begin_transaction();
-
-    $bookQuery = "INSERT INTO bookings (name, email, check_in, check_out, room_id, persons, rooms) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    $bookStmt = $conn->prepare($bookQuery);
-
-    $updateQuery = "UPDATE rooms SET available = 0 WHERE id = ?";
-    $updateStmt = $conn->prepare($updateQuery);
-
-    $stmt->bind_result($roomId);
-    for ($i = 0; $i < $rooms; $i++) {
-        if ($stmt->fetch()) {
-            // إدراج الحجز في جدول الحجوزات
-            $bookStmt->bind_param('ssssiii', $name, $email, $checkIn, $checkOut, $roomId, $persons, $rooms);
-            $bookStmt->execute();
-
-            // تحديث حالة الغرفة في جدول الغرف
-            $updateStmt->bind_param('i', $roomId);
-            $updateStmt->execute();
-        }
-    }
-
-    // تنفيذ المعاملة
-    $conn->commit();
-
-    echo "Reservation successful!";
+if ($query->rowCount() > 0) {
+    echo "Room number $room_number is already booked!";
 } else {
-    echo "Sorry, not enough rooms available for your selection.";
-}
+    // Insert the booking data into the database
+    $insert = $conn->prepare("
+        INSERT INTO reservations (name, email, check_in, check_out, persons, rooms, room_type, room_number)
+        VALUES (:name, :email, :check_in, :check_out, :persons, :rooms, :room_type, :room_number)
+    ");
 
-// إغلاق الاتصال بالبيانات والموارد
-if (isset($bookStmt)) {
-    $bookStmt->close();
+    $insert->bindParam(':name', $name);
+    $insert->bindParam(':email', $email);
+    $insert->bindParam(':check_in', $check_in);
+    $insert->bindParam(':check_out', $check_out);
+    $insert->bindParam(':persons', $persons);
+    $insert->bindParam(':rooms', $rooms);
+    $insert->bindParam(':room_type', $room_type);
+    $insert->bindParam(':room_number', $room_number);
+
+    if ($insert->execute()) {
+        echo "Booking successful! Your room number is: $room_number";
+    } else {
+        echo "An error occurred during the booking process. Please try again.";
+    }
 }
-if (isset($updateStmt)) {
-    $updateStmt->close();
-}
-$stmt->close();
-$conn->close();
 ?>
