@@ -12,7 +12,8 @@ try {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Ensure the server request method is defined and the form is submitted via POST
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = isset($_POST['name']) ? $_POST['name'] : null;
     $email = isset($_POST['email']) ? $_POST['email'] : null;
     $check_in = isset($_POST['check_in']) ? $_POST['check_in'] : null;
