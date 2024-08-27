@@ -20,6 +20,12 @@
             max-width: 600px;
             margin: auto;
         }
+        .result-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -31,7 +37,7 @@
     </div>
 
     <div id="bookingForm" class="booking-form mt-4 d-none">
-        <form id="reservationForm" method="POST" action="devops_add_process_182_248_backend.php">
+        <form id="reservationForm" method="POST">
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
                 <input type="text" class="form-control" id="name" name="name" required>
@@ -66,6 +72,7 @@
             </div>
             <button type="submit" class="btn btn-success">Reserve Now</button>
         </form>
+        <div id="resultMessage" class="result-message d-none"></div>
     </div>
 </div>
 
@@ -74,6 +81,18 @@
     $(document).ready(function() {
         $('#bookBtn').click(function() {
             $('#bookingForm').toggleClass('d-none');
+        });
+
+        $('#reservationForm').submit(function(e) {
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: 'devops_add_process_182_248_backend.php',
+                data: $(this).serialize(),
+                success: function(response) {
+                    $('#resultMessage').removeClass('d-none').html(response);
+                }
+            });
         });
     });
 </script>
