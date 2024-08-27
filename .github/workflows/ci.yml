@@ -56,6 +56,9 @@ jobs:
     - name: Install dependencies
       run: composer install
 
+    - name: Install htmlhint
+      run: npm install -g htmlhint
+
     - name: Run structural tests
       run: |
         echo "Running structural tests"
@@ -82,8 +85,7 @@ jobs:
         # Check if the file is an HTML/CSS file
         elif [[ "$content" == *"<html"* || "$content" == *"<div"* || "$content" == *"<head"* || "$content" == *"<style"* ]]; then
           echo "HTML/CSS structure detected, checking syntax..."
-          # Use xmllint to validate the HTML structure
-          xmllint --noout "$file_path" --html
+          htmlhint "$file_path"
           if [ $? -ne 0 ]; then
             echo "HTML structure errors found."
             exit 1
