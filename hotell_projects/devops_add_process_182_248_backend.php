@@ -61,8 +61,13 @@ if ($stmt->num_rows >= $rooms) {
     echo "Sorry, not enough rooms available for your selection.";
 }
 
+// Close statements and connection only if they are set
+if (isset($bookStmt)) {
+    $bookStmt->close();
+}
+if (isset($updateStmt)) {
+    $updateStmt->close();
+}
 $stmt->close();
-$bookStmt->close();
-$updateStmt->close();
 $conn->close();
 ?>
