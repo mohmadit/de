@@ -1,11 +1,11 @@
 <?php
-$host = "localhost";
+$host = "localhost"
 $db = "khotel";
 $user = "root";
-$pass = "";
+$pass = ""
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pas
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     echo "Connection failed: " . $e->getMessage();
@@ -52,7 +52,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     } else {
-        echo "Please fill in all the fields.";
+        echo "Please fill in all the fields."
     }
 } else {
     echo "No form data submitted.";
