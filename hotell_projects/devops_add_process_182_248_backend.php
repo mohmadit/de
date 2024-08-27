@@ -41,6 +41,9 @@ $stmt->execute();
 $stmt->store_result();
 
 if ($stmt->num_rows >= $rooms) {
+    // بدء المعاملة لضمان الاتساق في قاعدة البيانات
+    $conn->begin_transaction();
+
     $bookQuery = "INSERT INTO bookings (name, email, check_in, check_out, room_id, persons, rooms) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $bookStmt = $conn->prepare($bookQuery);
 
@@ -60,10 +63,10 @@ if ($stmt->num_rows >= $rooms) {
         }
     }
 
+    // تنفيذ المعاملة
+    $conn->commit();
+
     echo "Reservation successful!";
-} elseif ($stmt->num_rows == 0) {
-    // في حالة عدم وجود غرف متاحة أو الجدول فارغ، نرفض الحجز
-    echo "Sorry, no rooms available for your selection and the database is empty.";
 } else {
     echo "Sorry, not enough rooms available for your selection.";
 }
