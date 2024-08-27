@@ -2,6 +2,76 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
+$dbname = "khotel";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+die("Connection failed: " . $conn->connect_error);
+}
+
+// Improved validation check
+if (
+!isset($_POST['name']) ||
+!isset($_POST['email']) ||
+!isset($_POST['check_in']) ||
+!isset($_POST['check_out']) ||
+!isset($_POST['persons']) ||
+!isset($_POST['rooms']) ||
+!isset($_POST['room_type'])
+) {
+die("Please fill in all required fields.");
+}
+
+$name = $_POST['name'];
+$email = $_POST['email'];
+$checkIn = $_POST['check_in'];
+$checkOut = $_POST['check_out'];
+$persons = $_POST['persons'];
+$rooms = $_POST['rooms'];
+$roomType = $_POST['room_type'];
+
+// Check if 'room_type' column exists in the 'rooms' table
+$query = "SELECT id FROM rooms WHERE room_type = ? AND available = 1 LIMIT ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param('si', $roomType, $rooms);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows >= $rooms) {
+$bookQuery = "INSERT INTO bookings (name, email, check_in, check_out, room_id, persons, rooms) VALUES (?, ?, ?, ?, ?, ?, ?)";
+$bookStmt = $conn->prepare($bookQuery);
+
+$updateQuery = "UPDATE rooms SET available = 0 WHERE id = ?";
+$updateStmt = $conn->prepare($updateQuery);
+
+$stmt->bind_result($roomId);
+for ($i = 0; $i < $rooms; $i++) {
+if ($stmt->fetch()) {
+$bookStmt->bind_param('ssssiii', $name, $email, $checkIn, $checkOut, $roomId, $persons, $rooms);
+$bookStmt->execute();
+
+$updateStmt->bind_param('i', $roomId);
+$updateStmt->execute();
+}
+}
+
+echo "Reservation successful!";
+} else {
+echo "Sorry, not enough rooms available for your selection.";
+}
+
+$stmt->close();
+$bookStmt->close();
+$updateStmt->close();
+$conn->close();
+?>
+2024-08-27 14:33:28	2024-08-27 17:13:47	
+246	<?php
+
+$servername = "localhost";
+$username = "root";
+$password = "";
 $dbname = "hotel_booking";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -10,45 +80,40 @@ if ($conn->connect_error) {
 die("Connection failed: " . $conn->connect_error);
 }
 
-if (isset($_POST['room_number']) && isset($_POST['booking_date'])) {
-$room_number = $_POST['room_number'];
-$booking_date = $_POST['booking_date'];
 
 
-$sql = "SELECT id FROM rooms WHERE room_number = ? AND available = TRUE";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $room_number);
+$name = $_POST['name'];
+$email = $_POST['email'];
+$checkIn = $_POST['check_in'];
+$checkOut = $_POST['check_out'];
+$persons = $_POST['persons'];
+$rooms = $_POST['rooms'];
+$roomType = $_POST['room_type'];
+
+$query = "SELECT id FROM rooms WHERE room_type = ? AND available = 1 LIMIT ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param('si', $roomType, $rooms);
 $stmt->execute();
-$result = $stmt->get_result();
+$stmt->store_result();
 
-if ($result->num_rows > 0) {
+if ($stmt->num_rows >= $rooms) {
+$stmt->bind_result($roomId);
+while ($stmt->fetch()) {
+$bookQuery = "INSERT INTO bookings (name, email, check_in, check_out, room_id, persons, rooms) VALUES (?, ?, ?, ?, ?, ?, ?)";
+$bookStmt = $conn->prepare($bookQuery);
+$bookStmt->bind_param('ssssiii', $name, $email, $checkIn, $checkOut, $roomId, $persons, $rooms);
+$bookStmt->execute();
 
-$room = $result->fetch_assoc();
-$room_id = $room['id'];
-
-
-$sql = "INSERT INTO bookings (room_id, booking_date) VALUES (?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $room_id, $booking_date);
-
-if ($stmt->execute()) {
-
-$sql = "UPDATE rooms SET available = FALSE WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $room_id);
-$stmt->execute();
-
-echo "Booking successful!";
-} else {
-echo "Error: " . $stmt->error;
+$updateQuery = "UPDATE rooms SET available = 0 WHERE id = ?";
+$updateStmt = $conn->prepare($updateQuery);
+$updateStmt->bind_param('i', $roomId);
+$updateStmt->execute();
 }
+echo "Reservation successful!";
 } else {
-echo "Sorry, the room is not available or does not exist.";
+echo "Sorry, not enough rooms available for your selection.";
 }
+
 $stmt->close();
-} else {
-echo "Please provide both room number and booking date.";
-}
-
 $conn->close();
 ?>
