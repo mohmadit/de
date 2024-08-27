@@ -33,40 +33,37 @@ $persons = $_POST['persons'];
 $rooms = (int)$_POST['rooms'];
 $roomType = $_POST['room_type'];
 
-// التحقق من توافر الغرف. إذا كان جدول الغرف فارغًا، سنسمح بالحجز
+// استعلام للتحقق من توافر الغرف
 $query = "SELECT id FROM rooms WHERE room_type = ? AND available = 1 LIMIT ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('si', $roomType, $rooms);
 $stmt->execute();
 $stmt->store_result();
 
-if ($stmt->num_rows == 0) {
-    echo "No rooms available or database is empty. Proceeding with default booking.";
-}
-
-if ($stmt->num_rows >= $rooms || $stmt->num_rows == 0) {
-    // التعامل مع الحالة حيث توجد غرف متاحة أو الجدول فارغ (قبول الحجز)
+if ($stmt->num_rows >= $rooms) {
     $bookQuery = "INSERT INTO bookings (name, email, check_in, check_out, room_id, persons, rooms) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $bookStmt = $conn->prepare($bookQuery);
 
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($roomId);
-        $stmt->fetch();
-        $bookStmt->bind_param('ssssiii', $name, $email, $checkIn, $checkOut, $roomId, $persons, $rooms);
+    $updateQuery = "UPDATE rooms SET available = 0 WHERE id = ?";
+    $updateStmt = $conn->prepare($updateQuery);
 
-        // تحديث حالة الغرفة في جدول الغرف إذا كانت موجودة
-        $updateQuery = "UPDATE rooms SET available = 0 WHERE id = ?";
-        $updateStmt = $conn->prepare($updateQuery);
-        $updateStmt->bind_param('i', $roomId);
-        $updateStmt->execute();
-    } else {
-        // في حالة عدم وجود غرف، نستخدم 0 كـ room_id للإشارة إلى الحجز بدون غرفة معينة
-        $roomId = 0;
-        $bookStmt->bind_param('ssssiii', $name, $email, $checkIn, $checkOut, $roomId, $persons, $rooms);
+    $stmt->bind_result($roomId);
+    for ($i = 0; $i < $rooms; $i++) {
+        if ($stmt->fetch()) {
+            // إدراج الحجز في جدول الحجوزات
+            $bookStmt->bind_param('ssssiii', $name, $email, $checkIn, $checkOut, $roomId, $persons, $rooms);
+            $bookStmt->execute();
+
+            // تحديث حالة الغرفة في جدول الغرف
+            $updateStmt->bind_param('i', $roomId);
+            $updateStmt->execute();
+        }
     }
 
-    $bookStmt->execute();
     echo "Reservation successful!";
+} elseif ($stmt->num_rows == 0) {
+    // في حالة عدم وجود غرف متاحة أو الجدول فارغ، نرفض الحجز
+    echo "Sorry, no rooms available for your selection and the database is empty.";
 } else {
     echo "Sorry, not enough rooms available for your selection.";
 }
