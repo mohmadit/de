@@ -1,18 +1,22 @@
+
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "khotel";
+// Ensure that variables are defined properly
+$host = "localhost";  // Database host, usually 'localhost'
+$db = "khotel";  // Database name
+$user = "root";  // Database username (change this if it's different on your setup)
+$pass = "";  // Database password (add your password if there's any)
 
 try {
+    // PDO connection to the database
     $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
+    // Handle connection errors
     echo "Connection failed: " . $e->getMessage();
     exit();
 }
 
-// Get the form data
+// Continue with the rest of your code...
 $name = $_POST['name'];
 $email = $_POST['email'];
 $check_in = $_POST['check_in'];
