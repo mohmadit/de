@@ -68,12 +68,14 @@ jobs:
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
         
+        # Check if the file is a PHP file
         if [[ "$content" == *"<?php"* ]]; then
           if [[ "$content" != *"?>"* ]]; then
             echo "PHP closing tag not found."
             exit 1
           fi
           echo "PHP file structure is valid."
+        # Check if the file is an HTML file
         elif [[ "$content" == *"<html"* || "$content" == *"<div"* || "$content" == *"<head"* ]]; then
           echo "HTML structure detected and considered valid."
         else:
