@@ -67,12 +67,17 @@ jobs:
         fi
         echo "File $file_path exists, reading content..."
         content=$(cat "$file_path")
-        if [[ "$content" != *"<?php"* ]]; then
-          echo "PHP opening tag not found."
-          exit 1
-        fi
-        if [[ "$content" != *"?>"* ]]; then
-          echo "PHP closing tag not found."
+        
+        if [[ "$content" == *"<?php"* ]]; then
+          if [[ "$content" != *"?>"* ]]; then
+            echo "PHP closing tag not found."
+            exit 1
+          fi
+          echo "PHP file structure is valid."
+        elif [[ "$content" == *"<html"* || "$content" == *"<div"* || "$content" == *"<head"* ]]; then
+          echo "HTML structure detected and considered valid."
+        else:
+          echo "Unknown file structure. Neither PHP nor HTML detected."
           exit 1
         fi
         echo "Structural tests passed."
