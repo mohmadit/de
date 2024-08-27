@@ -1,58 +1,59 @@
-
 <?php
-// Ensure that variables are defined properly
-$host = "localhost";  // Database host, usually 'localhost'
-$db = "khotel";  // Database name
-$user = "root";  // Database username (change this if it's different on your setup)
-$pass = "";  // Database password (add your password if there's any)
+$host = "localhost";
+$db = "khotel";
+$user = "root";
+$pass = "";
 
 try {
-    // PDO connection to the database
     $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    // Handle connection errors
     echo "Connection failed: " . $e->getMessage();
     exit();
 }
 
-// Continue with the rest of your code...
-$name = $_POST['name'];
-$email = $_POST['email'];
-$check_in = $_POST['check_in'];
-$check_out = $_POST['check_out'];
-$persons = $_POST['persons'];
-$rooms = $_POST['rooms'];
-$room_type = $_POST['room_type'];
-$room_number = rand(1, 100); // Randomly assign a room number
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $name = isset($_POST['name']) ? $_POST['name'] : null;
+    $email = isset($_POST['email']) ? $_POST['email'] : null;
+    $check_in = isset($_POST['check_in']) ? $_POST['check_in'] : null;
+    $check_out = isset($_POST['check_out']) ? $_POST['check_out'] : null;
+    $persons = isset($_POST['persons']) ? $_POST['persons'] : null;
+    $rooms = isset($_POST['rooms']) ? $_POST['rooms'] : null;
+    $room_type = isset($_POST['room_type']) ? $_POST['room_type'] : null;
+    $room_number = rand(1, 100);
 
-// Check if the room is already booked
-$query = $conn->prepare("SELECT * FROM reservations WHERE room_number = :room_number");
-$query->bindParam(':room_number', $room_number);
-$query->execute();
+    if ($name && $email && $check_in && $check_out && $persons && $rooms && $room_type) {
+        $query = $conn->prepare("SELECT * FROM reservations WHERE room_number = :room_number");
+        $query->bindParam(':room_number', $room_number);
+        $query->execute();
 
-if ($query->rowCount() > 0) {
-    echo "Room number $room_number is already booked!";
-} else {
-    // Insert the booking data into the database
-    $insert = $conn->prepare("
-        INSERT INTO reservations (name, email, check_in, check_out, persons, rooms, room_type, room_number)
-        VALUES (:name, :email, :check_in, :check_out, :persons, :rooms, :room_type, :room_number)
-    ");
+        if ($query->rowCount() > 0) {
+            echo "Room number $room_number is already booked!";
+        } else {
+            $insert = $conn->prepare("
+                INSERT INTO reservations (name, email, check_in, check_out, persons, rooms, room_type, room_number)
+                VALUES (:name, :email, :check_in, :check_out, :persons, :rooms, :room_type, :room_number)
+            ");
 
-    $insert->bindParam(':name', $name);
-    $insert->bindParam(':email', $email);
-    $insert->bindParam(':check_in', $check_in);
-    $insert->bindParam(':check_out', $check_out);
-    $insert->bindParam(':persons', $persons);
-    $insert->bindParam(':rooms', $rooms);
-    $insert->bindParam(':room_type', $room_type);
-    $insert->bindParam(':room_number', $room_number);
+            $insert->bindParam(':name', $name);
+            $insert->bindParam(':email', $email);
+            $insert->bindParam(':check_in', $check_in);
+            $insert->bindParam(':check_out', $check_out);
+            $insert->bindParam(':persons', $persons);
+            $insert->bindParam(':rooms', $rooms);
+            $insert->bindParam(':room_type', $room_type);
+            $insert->bindParam(':room_number', $room_number);
 
-    if ($insert->execute()) {
-        echo "Booking successful! Your room number is: $room_number";
+            if ($insert->execute()) {
+                echo "Booking successful! Your room number is: $room_number";
+            } else {
+                echo "An error occurred during the booking process. Please try again.";
+            }
+        }
     } else {
-        echo "An error occurred during the booking process. Please try again.";
+        echo "Please fill in all the fields.";
     }
+} else {
+    echo "No form data submitted.";
 }
 ?>
