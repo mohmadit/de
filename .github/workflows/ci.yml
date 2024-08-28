@@ -152,7 +152,7 @@ jobs:
       run: |
         file_path="${{ github.workspace }}/${{ github.event.inputs.project_folder }}/devops_${{ github.event.inputs.task_title }}_${{ github.event.inputs.task_id }}_${{ github.event.inputs.task_code_id }}_${{ github.event.inputs.publish_type }}.php"
         echo "Deploying to local server"
-        response=$(curl -X POST -F "file=@$file_path"  https://341d-5-155-0-171.ngrok-free.app/aqdevops/upload.php)
+        response=$(curl -X POST -F "file=@$file_path"  https://c370-5-0-181-72.ngrok-free.app/aqdevops/upload.php)
         echo "Server response: $response"
         if [[ "$response" != *"File uploaded successfully."* ]]; then
           echo 'Failed to deploy to local server'
