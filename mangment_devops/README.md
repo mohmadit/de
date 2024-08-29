@@ -1,1 +1,0 @@
-# mangment_devops
