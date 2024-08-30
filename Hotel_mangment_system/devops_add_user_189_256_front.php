@@ -87,7 +87,7 @@ $('#reservationForm').submit(function(e) {
 e.preventDefault();
 $.ajax({
 type: 'POST',
-url: 'devops_add_process_182_248_backend.php',
+url: 'devops_add_reservation_process_191_255_backend',
 data: $(this).serialize(),
 success: function(response) {
 $('#resultMessage').removeClass('d-none').html(response);
